@@ -13,73 +13,58 @@ GanitaMetrics::GanitaMetrics(int vv)
   verbosity = vv;
 }
 
-int GanitaMetrics::readTHeader(ifstream &gzt_file)
+int GanitaMetrics::init(char *ref_input, char *sys_input)
 {
-//   GanitaMetricsSchema gzs;
-//   std::string line;
+  gmr = new GanitaBuffer();
+  gmr->open(ref_input);
+  cout<<"Reference file size = "<<gmr->size()<<endl;
 
-//   if(!std::getline(gzt_file,line)){
-//     return(-1);
-//   }
-//   if(line != gzs.returnSchema(0)){
-//     std::cout<<"Header error!"<<std::endl;
-//     return(-1);
-//   }
-//   if(!std::getline(gzt_file,line)){
-//     return(-1);
-//   }
-//   if(line != gzs.returnSchema(1)){
-//     std::cout<<"Header error!"<<std::endl;
-//     return(-1);
-//   }
-//   // Read in transformation name.
-//   if(!std::getline(gzt_file,name)){
-//     return(-1);
-//   }
-//   // Read in the representation. 
-//   if(!std::getline(gzt_file,representation)){
-//     return(-1);
-//   }
-//   // Read in secondary name. Not stored currently. 
-//   if(!std::getline(gzt_file,line)){
-//     return(-1);
-//   }
-//   // Read in type. 
-//   if(!std::getline(gzt_file,type)){
-//     return(-1);
-//   }
+  gms = new GanitaBuffer();
+  gms->open(sys_input);
 
   return(1);
 }
 
-int GanitaMetrics::readT(char *input_tran)
+int GanitaMetrics::readMotReference(void)
 {
-  // Read in the input transformation. 
-//   std::ifstream gzt_file(input_tran);
-//   if (!gzt_file.is_open()){
-//     std::cout<<"Unable to open input file: "<<input_tran<<std::endl;
-//     return(-1);
-//   }
+  int64_t new_id;
+  int64_t new_frame_number;
+  double new_x_anchor;
+  double new_y_anchor;
+  double new_width;
+  double new_height;
+  double new_confidence;
+  double new_x_world;
+  double new_y_world;
+  double new_z_world;
+  int new_verbosity;
+  uint64_t num;
+  GanitaMetricsDetection gmd;
 
-//   if(readTHeader(gzt_file) < 0){
-//     gzt_file.close();
-//     return(-1);
-//   }
-
-//   if(representation != "adic"){
-//     cout<<"Only able to read adic representation."<<endl;
-//     gzt_file.close();
-//     return(-1);
-//   }
-
-//   readAdic(gzt_file);
-
-//   if(verbosity > 0){
-//     dumpTHeader();
-//   }
-
-//   gzt_file.close();
+  addTrack();
+  
+  string line("");
+  while(gmr->getLine(line) >= 0){
+    cout<<line;
+    sscanf(line.c_str(), "%ld, %ld, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d",  
+	   &new_id, &new_frame_number, &new_x_anchor, &new_y_anchor, &new_width, &new_height, 
+	   &new_confidence, &new_x_world, &new_y_world, &new_z_world, &new_verbosity);
+ 
+    num = gmtracks[0]->addDetection(new_id, new_frame_number, new_x_anchor, new_y_anchor, new_width, new_height, 
+			      new_confidence, new_x_world, new_y_world, new_z_world, new_verbosity);
+    gmtracks[0]->returnGMD(num - 1, gmd);
+    cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
+    line = "";
+  }
   return(1);
+}
+
+int64_t GanitaMetrics::addTrack(void)
+{
+  GanitaMetricsTrack *newtrack = new GanitaMetricsTrack();
+  gmtracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
+  delete newtrack;
+  return(gmtracks.size());
 }
 
 int GanitaMetrics::dumpTHeader(void)
