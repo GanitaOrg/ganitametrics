@@ -69,7 +69,7 @@ endif()
 include_directories(/usr/local/include ../src/include)
 link_directories (/usr/local/lib)
 
-add_library(GanitaMetrics SHARED ../src/cpp/GanitaMetrics.cpp ../src/cpp/GanitaMetricsVersion.cpp ../src/cpp/GanitaMetricsUtil.cpp ../src/cpp/GanitaMetricsMat.cpp ../src/cpp/GanitaMetricsDetection.cpp ../src/cpp/GanitaMetricsTrack.cpp)
+add_library(GanitaMetrics SHARED ../src/cpp/GanitaMetrics.cpp ../src/cpp/GanitaMetricsVersion.cpp ../src/cpp/GanitaMetricsUtil.cpp ../src/cpp/GanitaMetricsMat.cpp ../src/cpp/GanitaMetricsMotDetection.cpp  ../src/cpp/GanitaMetricsTopDetection.cpp ../src/cpp/GanitaMetricsTrack.cpp ../src/cpp/GanitaMetricsVisualize.cpp)
 
 target_include_directories (GanitaMetrics PUBLIC /usr/local/include ../src/include ../src/cpp)
 
