@@ -173,11 +173,11 @@ int GanitaMetrics::visTracks(void)
     gmtracks[0]->returnTopGMD(ii, gmd);
     //gmvo<<"Frame number = "<<gmd.returnFrameNumber()<<endl;
     //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
-    //		(uint64_t) gmd.returnX_Anchor(), (uint64_t) gmd.returnY_Anchor(),
+    //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
     //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
     gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1
-	<<")\' : x="<<(uint64_t) gmd.returnX_Anchor()<<" : y="<<(uint64_t) gmd.returnY_Anchor()
-	<<" : w="<<(uint64_t) gmd.returnWidth()<<" : h="<<(uint64_t) gmd.returnHeight()<<" : color=red,\\"
+	<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0)
+	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)<<" : color=red,\\"
 	<<std::endl;
     ii++;
     if(ii % 1600 == 0){
