@@ -10,9 +10,10 @@
 #include <cstdio>
 #include <bitset>
 #include <cmath>
-#include <boost/shared_ptr.hpp>
+#include <memory>
+//#include <boost/shared_ptr.hpp>
 
-#ifndef __APPLE__
+#ifdef __APPLE__
 #include <bsd/stdlib.h>
 #endif
 

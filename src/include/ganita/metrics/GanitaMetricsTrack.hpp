@@ -8,7 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <cstdio>
-#include <boost/shared_ptr.hpp>
+#include <memory>
+//#include <boost/shared_ptr.hpp>
 
 #include "ganita/metrics/GanitaMetricsMotDetection.hpp"
 #include "ganita/metrics/GanitaMetricsTopDetection.hpp"

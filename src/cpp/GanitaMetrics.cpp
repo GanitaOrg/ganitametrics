@@ -167,7 +167,7 @@ int GanitaMetrics::visTracks(void)
   }
   nframes[0] = 0;
   gmvo<<"#!/bin/bash"<<endl;
-  gmvo<<"ffmpeg -i /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentreXVID.avi -vframes "<<nframes[1]<<" -vf \\"<<endl;
+  gmvo<<"ffmpeg -i /diva/DIVA/DATA/Tracking/TownCentre/TownCentreXVID.avi -vframes "<<nframes[1]<<" -vf \\"<<endl;
   gmvo<<"\"";
   while(ii<num){
     gmtracks[0]->returnTopGMD(ii, gmd);
@@ -193,7 +193,7 @@ int GanitaMetrics::visTracks(void)
       else nframes[1] = final_frame;
       start_time = ((double) nframes[0]) / 24.97;
       //gmvo<<"ffmpeg -i ../data/duke_tracker_output/TownCentre/TownCentreXVID.avi -vf \\"<<endl;
-      gmvo<<"ffmpeg -ss "<<start_time<<" -i /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentreXVID.avi -vframes "
+      gmvo<<"ffmpeg -ss "<<start_time<<" -i /diva/DIVA/DATA/Tracking/TownCentre/TownCentreXVID.avi -vframes "
 	  <<nframes[1] - nframes[0]<<" -vf \\"<<endl;
       gmvo<<"\"";
     }

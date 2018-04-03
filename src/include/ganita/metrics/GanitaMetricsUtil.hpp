@@ -1,7 +1,8 @@
 #ifndef _GANITAMETRICSUTIL_
 #define _GANITAMETRICSUTIL_
 
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace gmu
 {
