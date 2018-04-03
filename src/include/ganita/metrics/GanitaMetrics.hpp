@@ -12,6 +12,9 @@
 #include "ganita/metrics/GanitaMetricsTrack.hpp"
 #include "ganita/metrics/GanitaMetricsVisualize.hpp"
 
+//std::array<string,6> gm_colors[] = 
+//	{"red", "blue", "yellow", "purple", "orange", "green"};
+
 class GanitaMetrics
 {
 private:
@@ -21,6 +24,7 @@ private:
   GanitaBuffer *gmr, *gms;
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmtracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
+  vector<string> gm_colors;
 public:
   GanitaMetrics(void);
   GanitaMetrics(int vv);                   // set verbosity=vv

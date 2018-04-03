@@ -6,11 +6,23 @@
 GanitaMetrics::GanitaMetrics(void)
 {
   verbosity = 0;
+  gm_colors.push_back("red");
+  gm_colors.push_back("blue");
+  gm_colors.push_back("yellow");
+  gm_colors.push_back("purple");
+  gm_colors.push_back("orange");
+  gm_colors.push_back("green");
 }
 
 GanitaMetrics::GanitaMetrics(int vv)
 {
   verbosity = vv;
+  gm_colors.push_back("red");
+  gm_colors.push_back("blue");
+  gm_colors.push_back("yellow");
+  gm_colors.push_back("purple");
+  gm_colors.push_back("orange");
+  gm_colors.push_back("green");
 }
 
 int GanitaMetrics::init(char *ref_input, char *sys_input)
@@ -177,7 +189,8 @@ int GanitaMetrics::visTracks(void)
     //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
     gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1
 	<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0)
-	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)<<" : color=red,\\"
+	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)
+	<<" : color="<<gm_colors[gmd.returnId() % gm_colors.size()]<<",\\"
 	<<std::endl;
     ii++;
     if(ii % 1600 == 0){
