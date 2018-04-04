@@ -100,3 +100,54 @@ uint64_t GanitaMetricsTrack::returnNumberOfTopDetections(void)
   return(gtdetections.size());
 }
 
+int GanitaMetricsTrack::computeDetectionDensity
+(int64_t fr_num, GanitaMetricsMat& frame_det_den)
+{
+  // for this routine assume track frames are ordered by frame number.
+  // may want to remove this assumption later.
+  uint64_t ii, jj, kk;
+  GanitaMetricsTopDetection gmd;
+  unsigned long box_x1, box_x2, xx;
+  unsigned long box_y1, box_y2, yy;
+
+  //returnTopGMD(gtdetections.size() - 1, gmd);
+  //last_frame = gmd.returnFrameNumber();
+  ii = 0;
+  returnTopGMD(ii, gmd);
+  while(gmd.returnFrameNumber() < fr_num){
+    ii++;
+    if(ii >= gtdetections.size()) break;
+    returnTopGMD(ii, gmd);
+  }
+  if(gmd.returnFrameNumber() != fr_num){
+    // There are no detections on frame fr_num.
+    return(0);
+  }
+  jj = ii;
+  returnTopGMD(jj, gmd);
+  while(gmd.returnFrameNumber() == fr_num){
+    jj++;
+    if(jj >= gtdetections.size()) break;
+    returnTopGMD(jj, gmd);
+  }
+  cout<<"Found "<<jj - ii<<" detection boxes."<<endl;
+  // jj will be the last detection at this frame number.
+  // compute density for detections ii thru jj.
+  for(kk=ii; kk<jj; kk++){
+    returnTopGMD(kk, gmd);
+    box_x1 = (unsigned long) gmd.returnX_Anchor();
+    box_x2 = (unsigned long) (gmd.returnX_Anchor() + gmd.returnWidth());
+    box_y1 = (unsigned long) gmd.returnY_Anchor();
+    box_y2 = (unsigned long) (gmd.returnY_Anchor() + gmd.returnHeight());
+    if(box_x2 > 1920) box_x2 = 1920;
+    if(box_y2 > 1080) box_y2 = 1080;
+    for(yy=box_y1; yy<box_y2; yy++){
+      for(xx=box_x1; xx<box_x2; xx++){
+	frame_det_den.set(xx, yy, frame_det_den.get(xx,yy) + 1);
+      }
+    }
+  }
+	  
+  return(1);
+}
+

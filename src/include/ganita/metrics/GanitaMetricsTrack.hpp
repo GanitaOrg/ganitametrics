@@ -11,6 +11,7 @@
 #include <memory>
 //#include <boost/shared_ptr.hpp>
 
+#include "ganita/metrics/GanitaMetricsMat.hpp"
 #include "ganita/metrics/GanitaMetricsMotDetection.hpp"
 #include "ganita/metrics/GanitaMetricsTopDetection.hpp"
 
@@ -58,6 +59,8 @@ public:
 		       int new_verbosity);
   int returnMotGMD(uint64_t nn, GanitaMetricsMotDetection& gmd);
   uint64_t returnNumberOfTopDetections(void);
+  int computeDetectionDensity(int64_t fr_num, 
+	GanitaMetricsMat& frame_det_den);
 };
 
 #endif

@@ -37,5 +37,6 @@ public:
   int dumpTHeader(void);
   int init(char *input_seq);
   int visTracks(void);
+  int printDetDenFrame(void);
 };
 

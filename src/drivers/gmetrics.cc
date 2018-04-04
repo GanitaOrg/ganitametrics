@@ -15,5 +15,6 @@ int main(int argc, char *argv[])
   gmetrics.init(argv[1], argv[2]);
   gmetrics.readTopReference();
   gmetrics.visTracks();
+  gmetrics.printDetDenFrame();
 }
 

@@ -221,3 +221,33 @@ int GanitaMetrics::visTracks(void)
   return(1);
 }
 
+// This was used to test the detection density on a per frame basis.
+int GanitaMetrics::printDetDenFrame(void)
+{
+  GanitaMetricsMat det_mat(1920,1080);
+  uint64_t ii, jj;
+
+  gmtracks[0]->computeDetectionDensity(0,det_mat);
+
+  for(jj=0; jj<1080; jj++){
+    for(ii=0; ii<1920; ii++){
+      cout<<det_mat.get(ii,jj)<<" ";
+    }
+    cout<<endl;
+  }
+
+  return(1);
+}
+
+// Each set of tracks produces a density or frequency map in the following way. 
+// Take the reference set of tracks. 
+// Given each frame, and each pixel, calculate the number of reference 
+// tracks that contain that pixel location. This is the density map:
+// reference_detection_density_map(frame_number, xx, yy). 
+// Its values are non-negative integers. 
+// We will compute a similar map for system output: 
+// system_detection_density_map(frame_number, xx, yy).
+// Then we will compute the KL-divergence between the two density maps. 
+// KL-divergence = 
+// Avg_{frame_number} KL-div(reference_detection_density_map,system_detection_density_map).
+
