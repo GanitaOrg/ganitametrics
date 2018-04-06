@@ -22,7 +22,8 @@ private:
   std::string type;
   int verbosity;
   GanitaBuffer *gmr, *gms;
-  std::vector< std::shared_ptr<GanitaMetricsTrack> > gmtracks;
+  std::vector< std::shared_ptr<GanitaMetricsTrack> > gmrTracks;
+  std::vector< std::shared_ptr<GanitaMetricsTrack> > gmsTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
 public:
@@ -31,12 +32,15 @@ public:
   int init(char *ref_input, char *sys_input);
   int readMotReference(void);
   int readTopReference(void);
-  int64_t addTrack(void);
+  int64_t addRefTrack(void);
+  int readTopSystem(void);
+  int64_t addSysTrack(void);
   int64_t addVis(void);
   int readT(char *input_tran);
   int dumpTHeader(void);
   int init(char *input_seq);
   int visTracks(void);
   int printDetDenFrame(void);
+  int computeKL_DensityDistance(uint64_t fr_num);
 };
 

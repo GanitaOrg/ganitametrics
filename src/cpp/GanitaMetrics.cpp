@@ -33,6 +33,7 @@ int GanitaMetrics::init(char *ref_input, char *sys_input)
 
   gms = new GanitaBuffer();
   gms->open(sys_input);
+  cout<<"System file size = "<<gms->size()<<endl;
 
   return(1);
 }
@@ -53,7 +54,7 @@ int GanitaMetrics::readMotReference(void)
   uint64_t num;
   GanitaMetricsMotDetection gmd;
 
-  addTrack();
+  addRefTrack();
   
   string line("");
   while(gmr->getLine(line) >= 0){
@@ -62,9 +63,9 @@ int GanitaMetrics::readMotReference(void)
 	   &new_id, &new_frame_number, &new_x_anchor, &new_y_anchor, &new_width, &new_height, 
 	   &new_confidence, &new_x_world, &new_y_world, &new_z_world, &new_verbosity);
  
-    num = gmtracks[0]->addMotDetection(new_id, new_frame_number, new_x_anchor, new_y_anchor, new_width, new_height, 
+    num = gmrTracks[0]->addMotDetection(new_id, new_frame_number, new_x_anchor, new_y_anchor, new_width, new_height, 
 			      new_confidence, new_x_world, new_y_world, new_z_world, new_verbosity);
-    gmtracks[0]->returnMotGMD(num - 1, gmd);
+    gmrTracks[0]->returnMotGMD(num - 1, gmd);
     cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
     line = "";
   }
@@ -90,7 +91,7 @@ int GanitaMetrics::readTopReference(void)
   uint64_t num;
   GanitaMetricsTopDetection gmd;
   
-  addTrack();
+  addRefTrack();
   
   string line("");
   while(gmr->getLine(line) >= 0){
@@ -101,23 +102,72 @@ int GanitaMetrics::readTopReference(void)
 	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom, 
 	   &new_confidence, &new_verbosity);
  
-    num = gmtracks[0]->addTopDetection(new_id, new_frame_number, new_headValid, new_bodyValid, 
+    num = gmrTracks[0]->addTopDetection(new_id, new_frame_number, new_headValid, new_bodyValid, 
 				       new_headLeft, new_headTop, new_headRight, new_headBottom,
 				       new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
 				       new_confidence, new_verbosity);
-    gmtracks[0]->returnTopGMD(num - 1, gmd);
+    gmrTracks[0]->returnTopGMD(num - 1, gmd);
     //cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
     line = "";
   }
   return(1);
 }
 
-int64_t GanitaMetrics::addTrack(void)
+int64_t GanitaMetrics::addRefTrack(void)
 {
   GanitaMetricsTrack *newtrack = new GanitaMetricsTrack();
-  gmtracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
+  gmrTracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
   delete newtrack;
-  return(gmtracks.size());
+  return(gmrTracks.size());
+}
+
+int GanitaMetrics::readTopSystem(void)
+{
+  int64_t new_id;
+  int64_t new_frame_number;
+  int new_headValid;
+  int new_bodyValid;
+  double new_headLeft;
+  double new_headTop;
+  double new_headRight;
+  double new_headBottom;
+  double new_bodyLeft;
+  double new_bodyTop;
+  double new_bodyRight;
+  double new_bodyBottom;
+  double new_confidence;
+  int new_verbosity;
+  uint64_t num;
+  GanitaMetricsTopDetection gmd;
+  
+  addSysTrack();
+  
+  string line("");
+  while(gms->getLine(line) >= 0){
+    //cout<<line;
+    sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d",  
+	   &new_id, &new_frame_number, &new_headValid, &new_bodyValid, 
+	   &new_headLeft, &new_headTop, &new_headRight, &new_headBottom,
+	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom, 
+	   &new_confidence, &new_verbosity);
+ 
+    num = gmsTracks[0]->addTopDetection(new_id, new_frame_number, new_headValid, new_bodyValid, 
+				       new_headLeft, new_headTop, new_headRight, new_headBottom,
+				       new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
+				       new_confidence, new_verbosity);
+    gmsTracks[0]->returnTopGMD(num - 1, gmd);
+    //cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
+    line = "";
+  }
+  return(1);
+}
+
+int64_t GanitaMetrics::addSysTrack(void)
+{
+  GanitaMetricsTrack *newtrack = new GanitaMetricsTrack();
+  gmsTracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
+  delete newtrack;
+  return(gmsTracks.size());
 }
 
 int GanitaMetrics::dumpTHeader(void)
@@ -169,12 +219,12 @@ int GanitaMetrics::visTracks(void)
   gmvo.open("ganita_metrics_vis.sh");
   
   jj = 0; ii = 0;
-  num = gmtracks[0]->returnNumberOfTopDetections();
-  gmtracks[0]->returnTopGMD(num-1, gmd);
+  num = gmrTracks[0]->returnNumberOfTopDetections();
+  gmrTracks[0]->returnTopGMD(num-1, gmd);
   final_frame = gmd.returnFrameNumber();
   addVis();
   if(num > 1600){
-    gmtracks[0]->returnTopGMD(1600, gmd);
+    gmrTracks[0]->returnTopGMD(1600, gmd);
     nframes[1] = gmd.returnFrameNumber();
   }
   nframes[0] = 0;
@@ -182,7 +232,7 @@ int GanitaMetrics::visTracks(void)
   gmvo<<"ffmpeg -i /diva/DIVA/DATA/Tracking/TownCentre/TownCentreXVID.avi -vframes "<<nframes[1]<<" -vf \\"<<endl;
   gmvo<<"\"";
   while(ii<num){
-    gmtracks[0]->returnTopGMD(ii, gmd);
+    gmrTracks[0]->returnTopGMD(ii, gmd);
     //gmvo<<"Frame number = "<<gmd.returnFrameNumber()<<endl;
     //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
     //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
@@ -200,7 +250,7 @@ int GanitaMetrics::visTracks(void)
       jj++;
       nframes[0] = nframes[1];
       if(ii + 1600 < num){
-	gmtracks[0]->returnTopGMD(ii+1600, gmd);
+	gmrTracks[0]->returnTopGMD(ii+1600, gmd);
 	nframes[1] = gmd.returnFrameNumber();
       }
       else nframes[1] = final_frame;
@@ -227,7 +277,7 @@ int GanitaMetrics::printDetDenFrame(void)
   GanitaMetricsMat det_mat(1920,1080);
   uint64_t ii, jj;
 
-  gmtracks[0]->computeDetectionDensity(0,det_mat);
+  gmrTracks[0]->computeDetectionDensity(0,det_mat);
 
   for(jj=0; jj<1080; jj++){
     for(ii=0; ii<1920; ii++){
@@ -250,4 +300,69 @@ int GanitaMetrics::printDetDenFrame(void)
 // Then we will compute the KL-divergence between the two density maps. 
 // KL-divergence = 
 // Avg_{frame_number} KL-div(reference_detection_density_map,system_detection_density_map).
+
+// First, we compute the error produced by:
+// false detects (This is computed in the KL-divergence framework.)
+// missed detections (This is symmetric to false detects with ref and sys tracks roles reversed.)
+// difference in ref and sys densities where they are absolutely continuous.
+int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num)
+{
+  GanitaMetricsMat det_mat_ref(1920,1080);
+  GanitaMetricsMat det_mat_sys(1920,1080);
+  GanitaMetricsTopDetection gmsd;
+  uint64_t ii, jj;
+  uint64_t overlap, no_overlap;
+  uint64_t ref_not_sys, sys_not_ref;
+  double kL1;
+
+  overlap = 0;
+  no_overlap = 0;
+  ref_not_sys = 0;
+  sys_not_ref = 0;
+  kL1 = 0;
+
+  gmrTracks[0]->computeDetectionDensity(fr_num,det_mat_ref);
+  gmsTracks[0]->computeDetectionDensity(fr_num,det_mat_sys);
+
+  //gmsTracks[0]->returnTopGMD(fr_num, gmsd);
+
+  for(jj=0; jj<1080; jj++){
+    for(ii=0; ii<1920; ii++){
+      if(det_mat_ref.get(ii,jj) == 0){
+	if(det_mat_sys.get(ii,jj) == 0){
+	  // Not part of the support of either density.
+	  no_overlap++;
+	}
+	else{
+	  // In support of sys density, but not ref density.
+	  sys_not_ref++;
+	}
+      }
+      else{
+	if(det_mat_sys.get(ii,jj) == 0){
+	  // In support of ref density, but not sys density.
+	  ref_not_sys++;
+	}
+	else{
+	  // In support of both densities.
+	  overlap++;
+	  if(det_mat_ref.get(ii,jj) > det_mat_sys.get(ii,jj)){
+	    kL1 += log( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
+	  }
+	  else{
+	    kL1 += log( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
+	  }
+	}
+      }
+    }
+  }
+
+  gmsTracks[0]->stats.push_back(fr_num);
+  gmsTracks[0]->stats.push_back(no_overlap);
+  gmsTracks[0]->stats.push_back(overlap);
+  gmsTracks[0]->stats.push_back(ref_not_sys);
+  gmsTracks[0]->stats.push_back(sys_not_ref);
+  
+  return(1);
+}
 

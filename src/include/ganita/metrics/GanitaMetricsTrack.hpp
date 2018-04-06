@@ -61,6 +61,7 @@ public:
   uint64_t returnNumberOfTopDetections(void);
   int computeDetectionDensity(int64_t fr_num, 
 	GanitaMetricsMat& frame_det_den);
+  std::vector<double> stats;
 };
 
 #endif
