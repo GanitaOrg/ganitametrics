@@ -8,7 +8,8 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   id = 0;
   track_set_start = 0;
   track_set_end = 0;
-  verbosity = 0;
+  verbosity = 1;
+  numTracks = 0;
 }
 
 int64_t GanitaMetricsTrackSet::setStart(int64_t ss)
@@ -34,7 +35,7 @@ int GanitaMetricsTrackSet::init(char *buf_input)
   return(1);
 }
 
-int GanitaMetricsTrackSet::readTop(void)
+int GanitaMetricsTrackSet::readTopAsOne(void)
 {
   int64_t new_id;
   int64_t new_frame_number;
@@ -87,6 +88,95 @@ int GanitaMetricsTrackSet::readTop(void)
   gmTracks[0]->setStart(min_frame);
   gmTracks[0]->setEnd(max_frame);
 
+  setNumTracks(1);
+
+  return(1);
+}
+
+int GanitaMetricsTrackSet::readTop(void)
+{
+  int64_t new_id;
+  int64_t new_frame_number;
+  int new_headValid;
+  int new_bodyValid;
+  double new_headLeft;
+  double new_headTop;
+  double new_headRight;
+  double new_headBottom;
+  double new_bodyLeft;
+  double new_bodyTop;
+  double new_bodyRight;
+  double new_bodyBottom;
+  double new_confidence;
+  int new_verbosity;
+  uint64_t num;
+  GanitaMetricsTopDetection gmd;
+  //int64_t min_frame;
+  //int64_t max_frame;
+  int64_t total_tracks;
+  int64_t *rev_ids = new int64_t[10000000]();
+  int64_t *tru_ids = new int64_t[10000000]();
+
+  //min_frame = 1<<31;
+  //max_frame = -1;
+  total_tracks = 0;
+  
+  //addTrack();
+  
+  string line("");
+  while(gmb->getLine(line) >= 0){
+    //cout<<line;
+    sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d", 
+	   &new_id, &new_frame_number, &new_headValid, &new_bodyValid, 
+	   &new_headLeft, &new_headTop, &new_headRight, &new_headBottom,
+	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom, 
+	   &new_confidence, &new_verbosity);
+
+    if(tru_ids[new_id] == 0){
+      // create a new track
+      addTrack();
+      tru_ids[new_id] = 1;
+      rev_ids[new_id] = total_tracks;
+      gmTracks[rev_ids[new_id]]->setStart(new_frame_number);
+      gmTracks[rev_ids[new_id]]->setId(new_id);
+      total_tracks++;
+    }
+
+//     if(new_frame_number < min_frame){
+//       min_frame = new_frame_number;
+//       gmTracks[rev_ids[new_id]]->setStart(min_frame);
+//     }
+//     if(new_frame_number > max_frame){
+//       max_frame = new_frame_number;
+//       gmTracks[rev_ids[new_id]]->setEnd(max_frame);
+//     }
+ 
+    num = gmTracks[rev_ids[new_id]]->addTopDetection
+      (new_id, new_frame_number, new_headValid, new_bodyValid, 
+       new_headLeft, new_headTop, new_headRight, new_headBottom,
+       new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
+       new_confidence, new_verbosity);
+    gmTracks[rev_ids[new_id]]->returnTopGMD(num - 1, gmd);
+    if(verbosity > 1){
+      cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
+    }
+    line = "";
+  }
+
+//   gmTracks[rev_ids[new_id]]->setStart(min_frame);
+//   gmTracks[rev_ids[new_id]]->setEnd(max_frame);
+
+  delete rev_ids;
+  delete tru_ids;
+
+  if(verbosity){
+    cout<<"Total number of tracks = "<<total_tracks<<endl;
+  }
+  setNumTracks(total_tracks);
+
+  //Set the last frame number for each track
+  setEndFrames();
+
   return(1);
 }
 
@@ -123,6 +213,7 @@ int GanitaMetricsTrackSet::visTracks(void)
   gmTracks[0]->returnTopGMD(num-1, gmd);
   final_frame = gmd.returnFrameNumber();
   addVis();
+  nframes[1] = 0;
   if(num > 1600){
     gmTracks[0]->returnTopGMD(1600, gmd);
     nframes[1] = gmd.returnFrameNumber();
@@ -174,5 +265,48 @@ int GanitaMetricsTrackSet::visTracks(void)
 std::shared_ptr<GanitaMetricsTrack> GanitaMetricsTrackSet::returnTrack(uint64_t tt)
 {
   return(gmTracks[tt]);
+}
+
+int64_t GanitaMetricsTrackSet::setEndFrames(void)
+{
+  uint64_t ii;
+  int64_t num;
+  int64_t max_frame;
+  GanitaMetricsTopDetection gmd;
+
+  max_frame = 0;
+  for(ii=0; ii<gmTracks.size(); ii++){
+    num = gmTracks[ii]->returnNumberOfTopDetections();
+    gmTracks[ii]->returnTopGMD(num-1, gmd);
+    gmTracks[ii]->setEnd(gmd.returnFrameNumber());
+    if(gmd.returnFrameNumber() > max_frame){
+      max_frame = gmd.returnFrameNumber();
+    }
+  }
+
+  return(max_frame);
+}
+
+int64_t GanitaMetricsTrackSet::printStartStop(void)
+{
+  uint64_t ii;
+
+  for(ii=0; ii<gmTracks.size(); ii++){
+    cout<<"Track Id ("<<gmTracks[ii]->returnId()<<") First frame ("<<gmTracks[ii]->returnStart()<<") Last frame ("<<gmTracks[ii]->returnEnd()<<")"<<endl;
+  }
+
+  return(gmTracks.size());
+}
+
+int64_t GanitaMetricsTrackSet::setNumTracks(uint64_t tnum)
+{
+  numTracks = tnum;
+
+  return((int64_t) numTracks);
+}
+
+uint64_t GanitaMetricsTrackSet::returnNumTracks(void)
+{
+  return(numTracks);
 }
 

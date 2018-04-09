@@ -40,16 +40,23 @@ public:
   int64_t addVis(void);
   int readT(char *input_tran);
   int dumpTHeader(void);
-  int init(char *input_seq);
   int visTracks(void);
-  int visTracks(int tt);
+  int visTracks(int tset, int tnum);
   int printDetDenFrame(void);
   int printDetDenFrame(int ss);
   int computeKL_DensityDistance(uint64_t fr_num);
   int computeKL_DensityDistance_2(uint64_t fr_num);
+  int computeKL_DensityDistance
+  (uint64_t fr_num,uint64_t ref_nn, uint64_t sys_nn);
   int64_t printTrackStats(void);
   int64_t printTrackStats(int ss);
+  int64_t printTrackStats(int tset, uint64_t tnum);
   int readTop(int tt);
+  int readTopAsOne(int tt);
   int computeFrameStats(void);
+  int64_t printStartStop(int tset);
+  int computeTrackPairKL_aux(int64_t ref_nn, int64_t sys_nn);
+  int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, double& score);
+  int computeTrackKL(int64_t ref_nn);
 };
 

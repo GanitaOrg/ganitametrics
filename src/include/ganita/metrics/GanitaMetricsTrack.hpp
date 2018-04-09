@@ -18,7 +18,7 @@
 class GanitaMetricsTrack
 {
 private:
-  int64_t id;
+  int64_t track_id;
   int64_t track_start;
   int64_t track_end;
   double confidence;
@@ -65,6 +65,10 @@ public:
   int64_t printStats(void);
   int64_t setStart(int64_t ss);
   int64_t setEnd(int64_t ee);
+  int64_t setId(int64_t dd);
+  int64_t returnStart(void);
+  int64_t returnEnd(void);
+  int64_t returnId(void);
 };
 
 #endif

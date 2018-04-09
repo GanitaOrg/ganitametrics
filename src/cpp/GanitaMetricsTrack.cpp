@@ -5,7 +5,7 @@
 // Constructors
 GanitaMetricsTrack::GanitaMetricsTrack(void)
 {
-  id = 0;
+  track_id = 0;
   track_start = 0;
   track_end = 0;
   confidence = 0;
@@ -130,7 +130,9 @@ int GanitaMetricsTrack::computeDetectionDensity
     if(jj >= gtdetections.size()) break;
     returnTopGMD(jj, gmd);
   }
-  cout<<"Found "<<jj - ii<<" detection boxes."<<endl;
+  if(verbosity > 1){
+    cout<<"Found "<<jj - ii<<" detection boxes."<<endl;
+  }
   // jj will be the last detection at this frame number.
   // compute density for detections ii thru jj.
   for(kk=ii; kk<jj; kk++){
@@ -179,5 +181,27 @@ int64_t GanitaMetricsTrack::setEnd(int64_t ee)
   track_end = ee;
 
   return(track_end);
+}
+
+int64_t GanitaMetricsTrack::setId(int64_t dd)
+{
+  track_id = dd;
+
+  return(track_id);
+}
+
+int64_t GanitaMetricsTrack::returnStart(void)
+{
+  return(track_start);
+}
+
+int64_t GanitaMetricsTrack::returnEnd(void)
+{
+  return(track_end);
+}
+
+int64_t GanitaMetricsTrack::returnId(void)
+{
+  return(track_id);
 }
 
