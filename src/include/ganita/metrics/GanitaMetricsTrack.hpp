@@ -62,6 +62,9 @@ public:
   int computeDetectionDensity(int64_t fr_num, 
 	GanitaMetricsMat& frame_det_den);
   std::vector<double> stats;
+  int64_t printStats(void);
+  int64_t setStart(int64_t ss);
+  int64_t setEnd(int64_t ee);
 };
 
 #endif

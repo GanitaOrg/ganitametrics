@@ -151,3 +151,33 @@ int GanitaMetricsTrack::computeDetectionDensity
   return(1);
 }
 
+int64_t GanitaMetricsTrack::printStats(void)
+{
+  uint64_t ii, jj;
+
+  ii = 0;
+  while(ii<stats.size()){
+    for(jj=1; jj<=stats[ii]; jj++){
+      cout<<stats[ii+jj]<<",";
+    }
+    ii+= stats[ii] + 1;
+    cout<<endl;
+  }
+
+  return((int64_t) stats.size());
+}
+
+int64_t GanitaMetricsTrack::setStart(int64_t ss)
+{
+  track_start = ss;
+
+  return(track_start);
+}
+
+int64_t GanitaMetricsTrack::setEnd(int64_t ee)
+{
+  track_end = ee;
+
+  return(track_end);
+}
+

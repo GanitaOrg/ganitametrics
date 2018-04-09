@@ -12,10 +12,19 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  gmetrics.init(argv[1], argv[2]);
-  gmetrics.readTopReference();
-  gmetrics.readTopSystem();
-  gmetrics.visTracks();
+  gmetrics.init_2(argv[1], argv[2]);
+//   gmetrics.readTopReference();
+//   gmetrics.readTopSystem();
+//   gmetrics.visTracks();
+  gmetrics.readTop(0);
+  gmetrics.readTop(1);
+  gmetrics.visTracks(0);
+  //gmetrics.computeKL_DensityDistance_2(3);
+  //gmetrics.printTrackStats(1);
+  gmetrics.computeFrameStats();
+  gmetrics.printTrackStats(1);
   //gmetrics.printDetDenFrame();
+  //gmetrics.computeKL_DensityDistance(3);
+  //gmetrics.printTrackStats();
 }
 
