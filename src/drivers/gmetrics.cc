@@ -4,8 +4,11 @@
 
 int main(int argc, char *argv[])
 {
-  GanitaMetrics gmetrics(1);
+  GanitaMetrics gmetrics(0);
   GanitaMetricsVersion version;
+  double ttee;                     // ttee is tracking error
+  double tide;                     // tide is total inner divergence error
+
   if(argc < 3){
     std::cout<<"Usage: "<<argv[0]<<" reference-file system-file"<<std::endl;
     std::cout<<"Version: "<<version.returnVersion()<<endl;
@@ -13,21 +16,20 @@ int main(int argc, char *argv[])
   }
 
   gmetrics.init_2(argv[1], argv[2]);
-//   gmetrics.readTopReference();
-//   gmetrics.readTopSystem();
-//   gmetrics.visTracks();
+//   gmetrics.readTopAsOne(0);
+//   gmetrics.readTopAsOne(1);
+//   gmetrics.computeFrameStats();
+  //gmetrics.closeBuffers();
   gmetrics.readTop(0);
   gmetrics.readTop(1);
-  //gmetrics.visTracks(1,0);
-  gmetrics.purifyTrackKL(3);
-  gmetrics.computeTrackKL(3);
-  //gmetrics.printStartStop(1);
-  //gmetrics.computeKL_DensityDistance_2(3);
-  //gmetrics.printTrackStats(1);
-//   gmetrics.computeFrameStats();
-  //gmetrics.printTrackStats(1,2);
-  //gmetrics.printDetDenFrame();
-  //gmetrics.computeKL_DensityDistance(3);
-  //gmetrics.printTrackStats();
+  gmetrics.computeMeanTrackKL(0, ttee);
+  tide = ttee;
+  cout<<"KL tracking error conditioned on reference ("<<ttee<<")"<<endl;
+  gmetrics.computeMeanTrackKL(1, ttee);
+  tide += ttee;
+  cout<<"KL tracking error conditioned on system ("<<ttee<<")"<<endl;
+  cout<<"Total inner divergence error ("<<tide<<")"<<endl;
+
+  return(0);
 }
 

@@ -22,7 +22,7 @@ private:
   std::string type;
   int verbosity;
   GanitaBuffer *gmr, *gms;
-  GanitaMetricsTrackSet gmts[4];
+  GanitaMetricsTrackSet gmts[2];
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmrTracks;
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmsTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
@@ -53,12 +53,20 @@ public:
   int64_t printTrackStats(int tset, uint64_t tnum);
   int readTop(int tt);
   int readTopAsOne(int tt);
+  int closeBuffers(void);
   int computeFrameStats(void);
   int64_t printStartStop(int tset);
   int computeTrackPairKL_aux(int64_t ref_nn, int64_t sys_nn);
-  int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, double& score);
-  int computeTrackKL(int64_t ref_nn);
-  int purifyTrackKL(int64_t ref_nn);
-  int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn);
+  int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip,
+			 double& score);
+  int computeTrackPairOuterDiv
+  (int64_t ref_nn, int64_t sys_nn, int flip, double& score);
+  int computeTrackKL(int64_t ref_nn, double iKL, int flip, double& scoreKL);
+  int computeTrackOuterDiv
+  (int64_t ref_nn, double iKL, int flip, double& scoreKL);
+  int purifyTrackKL(int64_t ref_nn, int ref_or_sys, double& crossKL);
+  int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, 
+			int ref_or_sys, double& score);
+  int computeMeanTrackKL(int ref_or_sys, double& track_error);
 };
 
