@@ -65,8 +65,12 @@ public:
   int computeTrackOuterDiv
   (int64_t ref_nn, double iKL, int flip, double& scoreKL);
   int purifyTrackKL(int64_t ref_nn, int ref_or_sys, double& crossKL);
+  int purifyTrackKL_2(int64_t ref_nn, int ref_or_sys, double& crossKL);
   int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, 
 			int ref_or_sys, double& score);
+  int purifyTrackPairKL_2(int64_t ref_nn, int64_t sys_nn, 
+			  int ref_or_sys, double& score, 
+			  GanitaMetricsMat& rMat);
   int computeMeanTrackKL(int ref_or_sys, double& track_error);
 };
 
