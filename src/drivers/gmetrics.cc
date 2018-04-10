@@ -16,10 +16,11 @@ int main(int argc, char *argv[])
 //   gmetrics.readTopReference();
 //   gmetrics.readTopSystem();
 //   gmetrics.visTracks();
-  gmetrics.readTopAsOne(0);
-  gmetrics.readTopAsOne(1);
-  gmetrics.visTracks(1,0);
-  //gmetrics.computeTrackKL(3);
+  gmetrics.readTop(0);
+  gmetrics.readTop(1);
+  //gmetrics.visTracks(1,0);
+  gmetrics.purifyTrackKL(3);
+  gmetrics.computeTrackKL(3);
   //gmetrics.printStartStop(1);
   //gmetrics.computeKL_DensityDistance_2(3);
   //gmetrics.printTrackStats(1);

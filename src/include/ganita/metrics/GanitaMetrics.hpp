@@ -22,7 +22,7 @@ private:
   std::string type;
   int verbosity;
   GanitaBuffer *gmr, *gms;
-  GanitaMetricsTrackSet gmts[2];
+  GanitaMetricsTrackSet gmts[4];
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmrTracks;
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmsTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
@@ -58,5 +58,7 @@ public:
   int computeTrackPairKL_aux(int64_t ref_nn, int64_t sys_nn);
   int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, double& score);
   int computeTrackKL(int64_t ref_nn);
+  int purifyTrackKL(int64_t ref_nn);
+  int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn);
 };
 

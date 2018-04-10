@@ -19,6 +19,7 @@ GanitaMetricsTopDetection::GanitaMetricsTopDetection(void)
   bodyBottom = 0;
   confidence = 0;
   verbosity = 0;
+  auxValid = 0;
 }
 
 GanitaMetricsTopDetection::GanitaMetricsTopDetection(int vv)
@@ -37,6 +38,7 @@ GanitaMetricsTopDetection::GanitaMetricsTopDetection(int vv)
   bodyBottom = 0;
   confidence = 0;
   verbosity = vv;
+  auxValid = 0;
 }
 
 int GanitaMetricsTopDetection::setValues(
@@ -106,5 +108,28 @@ double GanitaMetricsTopDetection::returnHeight(void)
 double GanitaMetricsTopDetection::returnConfidence(void)
 {
   return(confidence);
+}
+
+int GanitaMetricsTopDetection::returnAuxValid(void)
+{
+  return(auxValid);
+}
+
+int GanitaMetricsTopDetection::setAuxValid(void)
+{
+  auxValid = 1;
+  return(auxValid);
+}
+
+double GanitaMetricsTopDetection::returnAux(int ii)
+{
+  return(aux[ii % aux.size()]);
+}
+
+double GanitaMetricsTopDetection::pushAux(double val)
+{
+  aux.push_back(val);
+
+  return(val);
 }
 

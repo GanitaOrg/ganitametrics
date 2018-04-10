@@ -69,6 +69,10 @@ public:
   int64_t returnStart(void);
   int64_t returnEnd(void);
   int64_t returnId(void);
+  int returnAuxValid(uint64_t dd);
+  int setAuxValid(uint64_t dd);
+  double returnAux(uint64_t dd, int ii);
+  double pushAux(uint64_t dd, double val);
 };
 
 #endif

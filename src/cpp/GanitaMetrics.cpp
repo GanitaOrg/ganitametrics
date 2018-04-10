@@ -896,6 +896,9 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, double& sc
     else{
       fr_overlap = (upper_y2 - lower_y1)*(right_x2 - left_x1);
       cout<<"Overlap ("<<left_x1<<","<<lower_y1<<") "<<"("<<right_x2<<","<<upper_y2<<")"<<endl;
+      if(gmd1.returnAuxValid() == 1){
+	cout<<"Expected overlap"<<endl;
+      }
     }
     if((gmd1.returnWidth() <= 0) || (gmd1.returnHeight() <= 0)){
       //skip
@@ -959,5 +962,174 @@ int GanitaMetrics::computeTrackKL(int64_t ref_nn)
   cout<<"Final inner divergence "<<scoreKL<<endl;
 
   return(1);
+}
+
+int GanitaMetrics::purifyTrackKL(int64_t ref_nn)
+{
+  int64_t ii, num;
+
+  num = gmts[0].returnNumTracks();
+  for(ii=0; ii<num; ii++){
+    if(ii != ref_nn){
+      purifyTrackPairKL(ref_nn, ii);
+    }
+  }
+
+  return(1); 
+}
+
+int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn)
+{
+  GanitaMetricsTopDetection gmd1, gmd2;
+  std::shared_ptr< GanitaMetricsTrack > refTrack, sysTrack;
+  uint64_t ii, jj;
+  uint64_t ff1, ff2, ff;
+  uint64_t final_frame1, final_frame2, final_frame;
+  double left_x1, right_x2;
+  double lower_y1, upper_y2;
+  double ref_x1, sys_x1;
+  double ref_x2, sys_x2;
+  double ref_y1, sys_y1;
+  double ref_y2, sys_y2;
+  double fr_overlap;
+  uint64_t num1, num2;
+  double kule, score;
+  //uint64_t num;
+ 
+  ii = 0; jj = 0;
+  ff = 0;
+
+  refTrack = gmts[0].returnTrack(ref_nn);
+  sysTrack = gmts[0].returnTrack(sys_nn);
+  ff1 = refTrack->returnStart();
+  ff2 = sysTrack->returnStart();
+  final_frame1 = refTrack->returnEnd();
+  final_frame2 = sysTrack->returnEnd();
+
+  if(ff1 > final_frame2){
+    // no overlap temporally
+    return(-1);
+  }
+  if(ff2 > final_frame1){
+    // no overlap temporally
+    return(-1);
+  }
+  // Otherwise there is overlap
+  if(ff1 < ff2){
+    ii+= ff2 - ff1;
+    ff = ff2;
+  }
+  else{
+    jj += ff1 - ff2;
+    ff = ff1;
+  }
+
+  cout<<"ii = "<<ii<<" "<<"jj = "<<jj<<endl;
+
+  num1 = refTrack->returnNumberOfTopDetections();
+  num2 = sysTrack->returnNumberOfTopDetections();
+
+  kule = 0;
+  final_frame = final_frame1;
+  while(ff<=final_frame){
+    refTrack->returnTopGMD(ii, gmd1);
+    ff1 = gmd1.returnFrameNumber();
+    sysTrack->returnTopGMD(jj, gmd2);
+    ff2 = gmd2.returnFrameNumber();
+    
+    cout<<"Frame numbers "<<ff1<<" "<<ff2<<endl;
+    cout<<"Values: "<<gmd1.returnX_Anchor()<<":"<<gmd1.returnY_Anchor()<<":"
+	<<gmd1.returnWidth()<<":"<<gmd1.returnHeight()<<":"<<endl;
+    cout<<"Values: "<<gmd2.returnX_Anchor()<<":"<<gmd2.returnY_Anchor()<<":"
+	<<gmd2.returnWidth()<<":"<<gmd2.returnHeight()<<":"<<endl;
+
+    // Find the lower left point of overlap
+    ref_x1 = gmd1.returnX_Anchor();
+    sys_x1 = gmd2.returnX_Anchor();
+    if(ref_x1 > sys_x1){
+      left_x1 = ref_x1;
+    }
+    else{ left_x1 = sys_x1; }
+
+    ref_y1 = gmd1.returnY_Anchor();
+    sys_y1 = gmd2.returnY_Anchor();
+    if(ref_y1 > sys_y1){
+      lower_y1 = ref_y1;
+    }
+    else{ lower_y1 = sys_y1; }
+   
+    // Find the upper right point of overlap
+    ref_x2 = gmd1.returnX_Anchor() + gmd1.returnWidth();
+    sys_x2 = gmd2.returnX_Anchor() + gmd2.returnWidth();
+    if(ref_x2 > sys_x2){
+      right_x2 = sys_x2;
+    }
+    else{ right_x2 = ref_x2; }
+
+    ref_y2 = gmd1.returnY_Anchor() + gmd1.returnHeight();
+    sys_y2 = gmd2.returnY_Anchor() + gmd2.returnHeight();
+    if(ref_y2 > sys_y2){
+      upper_y2 = sys_y2;
+    }
+    else{ upper_y2 = ref_y2; }
+
+    cout<<"Computed stats on frame "<<ff<<endl;
+    if((left_x1 >= right_x2) || (lower_y1 >= upper_y2)){
+      // There is no overlap
+      fr_overlap = 0;
+    }
+    else{
+      fr_overlap = (upper_y2 - lower_y1)*(right_x2 - left_x1);
+      cout<<"Overlap ("<<left_x1<<","<<lower_y1<<") "<<"("<<right_x2<<","<<upper_y2<<")"<<endl;
+      gmd1.setAuxValid();
+      gmd1.pushAux(left_x1);
+      gmd1.pushAux(lower_y1);
+      gmd1.pushAux(right_x2);
+      gmd1.pushAux(upper_y2);
+    }
+    if((gmd1.returnWidth() <= 0) || (gmd1.returnHeight() <= 0)){
+      //skip
+    }
+    else{
+      kule += ((double) fr_overlap) / (gmd1.returnWidth() * gmd1.returnHeight());
+    }
+    cout<<"Overlap "<<fr_overlap<<endl;
+
+    ff++;
+
+    while(ff1 < ff){
+      ii++;
+      if(ii >= num1){
+	// reached end of track
+	break;
+      }
+      refTrack->returnTopGMD(ii, gmd1);
+      ff1 = gmd1.returnFrameNumber();
+    }
+    while(ff2 < ff){
+      jj++;
+      if(jj >= num2){
+	// reached end of track
+	break;
+      }
+      sysTrack->returnTopGMD(jj, gmd2);
+      ff2 = gmd2.returnFrameNumber();
+    }
+    if((ii >= num1) || (jj >= num2)){
+      // a track has finished
+      break;
+    }
+  }
+  kule /= num1;
+  if(kule > 0){
+    score = -1*kule*log(kule) / log(2);
+    cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
+  }
+  else{
+    score = 0;
+    cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
+  }
+  
+  return(1);	  
 }
 

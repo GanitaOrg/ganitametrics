@@ -205,3 +205,23 @@ int64_t GanitaMetricsTrack::returnId(void)
   return(track_id);
 }
 
+int GanitaMetricsTrack::returnAuxValid(uint64_t dd)
+{
+  return(gtdetections[dd]->returnAuxValid());
+}
+
+int GanitaMetricsTrack::setAuxValid(uint64_t dd)
+{
+  return(gtdetections[dd]->setAuxValid());
+}
+
+double GanitaMetricsTrack::returnAux(uint64_t dd, int ii)
+{
+  return(gtdetections[dd]->returnAux(ii));
+}
+
+double GanitaMetricsTrack::pushAux(uint64_t dd, double val)
+{
+  return(gtdetections[dd]->pushAux(val));
+}
+

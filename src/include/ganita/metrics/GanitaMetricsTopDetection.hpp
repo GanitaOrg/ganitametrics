@@ -25,6 +25,8 @@ private:
   double bodyRight;
   double bodyBottom;
   double confidence;
+  std::vector<double> aux;
+  int auxValid;
   int verbosity;
 public:
   GanitaMetricsTopDetection(void);
@@ -50,6 +52,10 @@ public:
   double returnWidth(void);
   double returnHeight(void);
   double returnConfidence(void);
+  int returnAuxValid(void);
+  int setAuxValid(void);
+  double returnAux(int ii);
+  double pushAux(double val);
 };
 
 #endif
