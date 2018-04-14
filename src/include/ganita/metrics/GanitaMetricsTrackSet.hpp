@@ -28,8 +28,10 @@ private:
 public:
   GanitaMetricsTrackSet(void);
   GanitaMetricsTrackSet(int vv);                   // set verbosity=vv
-  int64_t setStart(int64_t ss);
-  int64_t setEnd(int64_t ee);
+  uint64_t setStart(uint64_t ss);
+  uint64_t setEnd(uint64_t ee);
+  uint64_t returnStart(void);
+  uint64_t returnEnd(void);
   int init(char *buf_input);
   //int readMot(void);
   int readTopAsOne(void);
@@ -42,6 +44,7 @@ public:
   int64_t printStartStop(void);
   int64_t setNumTracks(uint64_t tnum);
   uint64_t returnNumTracks(void);
+  int computeEndPoints(void);
   //int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn);
 //   int printDetDenFrame(void);
 //   int computeKL_DensityDistance(uint64_t fr_num);

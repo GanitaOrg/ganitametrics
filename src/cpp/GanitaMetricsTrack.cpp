@@ -225,3 +225,38 @@ double GanitaMetricsTrack::pushAux(uint64_t dd, double val)
   return(gtdetections[dd]->pushAux(val));
 }
 
+int64_t GanitaMetricsTrack::returnFrameIndex(int64_t fr_num)
+{
+  int64_t ii, jj;
+  GanitaMetricsTopDetection gmd;
+
+  if(returnNumberOfTopDetections() <= 0) return(-1);
+  if((returnStart() > fr_num) || (returnEnd() < fr_num)){
+    return(-1);
+  }
+  else{
+    jj = 0; ii = 0;
+    while(ii < fr_num){
+      returnTopGMD(jj, gmd);
+      ii = gmd.returnFrameNumber();
+      jj++;
+    }
+    if(ii != fr_num){ return(-1); }
+    else{ return(jj); }
+  }
+
+  return(1);
+}
+
+int GanitaMetricsTrack::initStats(uint64_t num)
+{
+  uint64_t ii;
+  
+  stats.clear();
+  for(ii=0; ii<num; ii++){
+    stats.push_back(0);
+  }
+
+  return(1);
+}
+

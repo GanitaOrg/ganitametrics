@@ -61,6 +61,10 @@ public:
   uint64_t returnNumberOfTopDetections(void);
   int computeDetectionDensity(int64_t fr_num, 
 	GanitaMetricsMat& frame_det_den);
+  // stats are used internally and will eventually 
+  // be moved to private section.
+  // usage of stats is not necessarily consistent 
+  // across different methods.
   std::vector<double> stats;
   int64_t printStats(void);
   int64_t setStart(int64_t ss);
@@ -73,6 +77,8 @@ public:
   int setAuxValid(uint64_t dd);
   double returnAux(uint64_t dd, int ii);
   double pushAux(uint64_t dd, double val);
+  int64_t returnFrameIndex(int64_t fr_num);
+  int initStats(uint64_t num);
 };
 
 #endif

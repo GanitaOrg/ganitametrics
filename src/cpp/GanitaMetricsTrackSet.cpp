@@ -12,17 +12,27 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   numTracks = 0;
 }
 
-int64_t GanitaMetricsTrackSet::setStart(int64_t ss)
+uint64_t GanitaMetricsTrackSet::setStart(uint64_t ss)
 {
   track_set_start = ss;
 
   return(track_set_start);
 }
 
-int64_t GanitaMetricsTrackSet::setEnd(int64_t ee)
+uint64_t GanitaMetricsTrackSet::setEnd(uint64_t ee)
 {
   track_set_end = ee;
 
+  return(track_set_end);
+}
+
+uint64_t GanitaMetricsTrackSet::returnStart(void)
+{
+  return(track_set_start);
+}
+
+uint64_t GanitaMetricsTrackSet::returnEnd(void)
+{
   return(track_set_end);
 }
 
@@ -144,11 +154,11 @@ int GanitaMetricsTrackSet::readTop(void)
 
 //     if(new_frame_number < min_frame){
 //       min_frame = new_frame_number;
-//       gmTracks[rev_ids[new_id]]->setStart(min_frame);
+//       setStart(min_frame);
 //     }
 //     if(new_frame_number > max_frame){
 //       max_frame = new_frame_number;
-//       gmTracks[rev_ids[new_id]]->setEnd(max_frame);
+//       setEnd(max_frame);
 //     }
  
     num = gmTracks[rev_ids[new_id]]->addTopDetection
@@ -176,6 +186,8 @@ int GanitaMetricsTrackSet::readTop(void)
 
   //Set the last frame number for each track
   setEndFrames();
+  // Compute the min and max frames of entire Track Set.
+  computeEndPoints();
 
   return(1);
 }
@@ -308,5 +320,28 @@ int64_t GanitaMetricsTrackSet::setNumTracks(uint64_t tnum)
 uint64_t GanitaMetricsTrackSet::returnNumTracks(void)
 {
   return(numTracks);
+}
+
+int GanitaMetricsTrackSet::computeEndPoints(void)
+{
+  uint64_t ii;
+  uint64_t min_frame, max_frame;
+
+  min_frame = 1<<31;
+  max_frame = 0;
+  
+  for(ii=0; ii<gmTracks.size(); ii++){
+    if(min_frame > (uint64_t) gmTracks[ii]->returnStart()){
+      min_frame = gmTracks[ii]->returnStart();
+    }
+    if(max_frame < (uint64_t) gmTracks[ii]->returnEnd()){
+      max_frame = gmTracks[ii]->returnEnd();
+    }
+  }
+
+  setStart(min_frame);
+  setEnd(max_frame);
+
+  return(1);
 }
 

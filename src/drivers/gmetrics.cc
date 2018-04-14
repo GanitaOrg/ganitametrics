@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
   cout<<"KL tracking error conditioned on system ("<<ttee<<")"<<endl;
   cout<<"Total inner divergence error ("<<tide<<")"<<endl;
 
+  //gmetrics.processOuterDiv_3(0);
+  //gmetrics.processOuterDiv_3(1);
+
   return(0);
 }
 

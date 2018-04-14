@@ -1605,3 +1605,187 @@ int GanitaMetrics::computeMeanTrackKL(int ref_or_sys, double& track_error)
   return(1);
 }
 
+int GanitaMetrics::processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, GanitaMetricsMat& rMat, 
+				     int set1, int set2)
+{
+  uint64_t kk, uu, vv;
+  uint64_t ww, hh;
+  int64_t iref, isys;
+  GanitaMetricsTopDetection gmd1, gmd2;
+  std::shared_ptr< GanitaMetricsTrack > refTrack, sysTrack;
+  double ref_x1, sys_x1;
+  double ref_x2, sys_x2;
+  double ref_y1, sys_y1;
+  double ref_y2, sys_y2;
+  //double no_overlap;
+
+  //no_overlap = 0;
+  refTrack = gmts[set1].returnTrack(tr_num);
+  iref = refTrack->returnFrameIndex(fr_num);
+  if(iref >= 0){
+    refTrack->returnTopGMD(iref, gmd1);
+    ref_x1 = gmd1.returnX_Anchor();
+    ref_y1 = gmd1.returnY_Anchor();
+    ww = gmd1.returnWidth(); hh = gmd1.returnHeight();
+    ref_x2 = ref_x1 + ww;
+    ref_y2 = ref_y1 + hh;
+    for(kk=0; kk<gmts[set2].returnNumTracks(); kk++){
+      sysTrack = gmts[set2].returnTrack(kk);
+      isys = sysTrack->returnFrameIndex(fr_num);
+      if(isys >= 0){
+	// Both refTrack and sysTrack have boxes on this frame
+	sysTrack->returnTopGMD(isys, gmd2);
+	sys_x1 = gmd2.returnX_Anchor();
+	sys_y1 = gmd2.returnY_Anchor();
+	sys_x2 = sys_x1 + gmd2.returnWidth();
+	sys_y2 = sys_y1 + gmd2.returnHeight();
+	// Find any overlap between refTrack and sysTrack	    
+	if((sys_x1 < ref_x2) && (sys_x2 > ref_x1) && 
+	   (sys_y1 < ref_y2) && (sys_y2 > ref_y1)){
+	  // there is an overlap
+	  for(uu=0; uu<ww; uu++){
+	    for(vv=0; vv<hh; vv++){
+	      if((ref_x1 + uu >= sys_x1) && (ref_x1 + uu < sys_x2) && 
+		 (ref_y1 + vv >= sys_y1) && (ref_y1 + vv < sys_y2)){
+		rMat.set(uu,vv,rMat.get(uu,vv)+1);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+  
+  return(1);
+}
+
+int GanitaMetrics::processOuterDiv_2(uint64_t fr_num, int tset)
+{
+  uint64_t kk;
+  uint64_t ww, hh;
+  int64_t iref;
+  GanitaMetricsTopDetection gmd1;
+  std::shared_ptr< GanitaMetricsTrack > refTrack;
+
+  if(verbosity > 1){
+    cout<<"Processing frame ... "<<fr_num<<" ... Tracks ..."<<endl;
+  }
+  for(kk=0; kk<gmts[tset].returnNumTracks(); kk++){
+    refTrack = gmts[tset].returnTrack(kk);
+    iref = refTrack->returnFrameIndex(fr_num);
+    if(iref >= 0){
+      if(verbosity > 1){
+	cout<<kk<<":";
+      }
+      refTrack->returnTopGMD(iref, gmd1);
+      ww = gmd1.returnWidth(); hh = gmd1.returnHeight();
+      GanitaMetricsMat rMat1(ww, hh);
+      GanitaMetricsMat rMat2(ww, hh);
+      processOuterDiv_1(fr_num, kk, rMat1, tset, 1 - tset);
+      processOuterDiv_1(fr_num, kk, rMat2, tset, tset);
+      updateStats(tset, kk, rMat1, rMat2);
+      rMat1.close();
+      rMat2.close();
+//       cout<<"Track("<<kk<<") "<<"Frame("<<fr_num<<") "<<"("<<refTrack->stats[0]<<") "
+// 	  <<"("<<refTrack->stats[1]<<") "<<"("<<refTrack->stats[2]<<")"<<endl;
+    }
+  }
+  if(verbosity > 1){
+    cout<<endl;
+  }
+
+  return(1);
+}
+
+int GanitaMetrics::processOuterDiv_3(int tset)
+{
+  uint64_t ii;
+  uint64_t min_frame, max_frame;
+  std::shared_ptr< GanitaMetricsTrack > refTrack;
+  double score, alpha;
+  double tscore1, tscore2;
+
+  tscore1 = 0; tscore2 = 0;
+  for(ii=0; ii<gmts[tset].returnNumTracks(); ii++){
+    refTrack = gmts[tset].returnTrack(ii);
+    refTrack->initStats(3);
+  }
+
+  min_frame = gmts[tset].returnStart();
+  max_frame = gmts[tset].returnEnd();
+  for(ii=min_frame; ii<max_frame; ii++){
+    processOuterDiv_2(ii, tset);
+  }
+
+  for(ii=0; ii<gmts[tset].returnNumTracks(); ii++){
+    refTrack = gmts[tset].returnTrack(ii);
+    cout<<"Track("<<ii<<") Stats "<<"("<<refTrack->stats[0]<<") "
+	<<"("<<refTrack->stats[1]<<") "<<"("<<refTrack->stats[2]<<")"<<endl;
+    if(refTrack->stats[0] > 0){
+      alpha = ((double) (refTrack->stats[0] - refTrack->stats[1])) / ((double) refTrack->stats[0]);
+    }
+    else{
+      // This should only happen for tracks with no volumes.
+      alpha = 0;
+    }
+    score = log( ((double) 1 + gmts[1-tset].returnNumTracks()) 
+		 / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
+    cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
+    tscore1 += score / gmts[tset].returnNumTracks();
+    tscore2 += (1 - alpha) / gmts[tset].returnNumTracks();
+  }
+
+  cout<<"Final missed detection or false alarm score ("<<tscore1<<")"<<endl;
+  cout<<"Average missed detection or false alarm error ("<<tscore2<<")"<<endl;
+
+  return(1);
+}
+
+int GanitaMetrics::updateStats(int tset, uint64_t tr_num, 
+			       GanitaMetricsMat rMat1, GanitaMetricsMat rMat2)
+{
+  uint64_t ii, jj;
+  double no_overlap, kL;
+  std::shared_ptr< GanitaMetricsTrack > refTrack;
+
+  no_overlap = 0;
+  kL = 0;
+
+  refTrack = gmts[tset].returnTrack(tr_num);
+  if(refTrack->stats.size() <= 0){
+    // need to initialize stats first
+    return(-1);
+  }
+  refTrack->stats[0] += rMat1.returnNCols() * rMat1.returnNRows();
+  for(ii=0; ii<rMat1.returnNCols(); ii++){
+    for(jj=0; jj<rMat1.returnNRows(); jj++){
+      if(rMat1.get(ii, jj) == 0){
+	// no overlap
+	no_overlap++;
+      }
+      else{
+	// there is overlap
+	// compute KL-divergence difference between distributions
+	// then add this to the stats
+	if(rMat2.get(ii, jj) == 0){
+	  // this probably shouldn't happen
+	  // possibly we excluded the refTrack
+	  kL += log((double) rMat1.get(ii, jj)); 
+	}
+	else{
+	  if(rMat2.get(ii, jj) > rMat1.get(ii, jj)){
+	    kL += log(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
+	  }
+	  else{
+	    kL += log(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
+	  }
+	}
+      }
+    }
+  }
+  refTrack->stats[1] += no_overlap;
+  refTrack->stats[2] += kL;
+
+  return(1);
+}
+

@@ -12,6 +12,10 @@
 #include "ganita/metrics/GanitaMetricsTrackSet.hpp"
 #include "ganita/metrics/GanitaMetricsVisualize.hpp"
 
+#ifndef STAT_DENOM
+#define STAT_DENOM 1000
+#endif
+
 //std::array<string,6> gm_colors[] = 
 //	{"red", "blue", "yellow", "purple", "orange", "green"};
 
@@ -72,5 +76,11 @@ public:
 			  int ref_or_sys, double& score, 
 			  GanitaMetricsMat& rMat);
   int computeMeanTrackKL(int ref_or_sys, double& track_error);
+  int processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, 
+		      GanitaMetricsMat& rMat, int set1, int set2);
+  int processOuterDiv_2(uint64_t fr_num, int tset);
+  int processOuterDiv_3(int tset);
+  int updateStats(int tset, uint64_t tr_num, 
+		  GanitaMetricsMat rMat1, GanitaMetricsMat rMat2);
 };
 
