@@ -24,14 +24,22 @@ int main(int argc, char *argv[])
   gmetrics.readTop(1);
   gmetrics.computeMeanTrackKL(0, ttee);
   tide = ttee;
-  cout<<"KL tracking error conditioned on reference ("<<ttee<<")"<<endl;
+  gmetrics.gmScores.push_back(ttee);
+  gmetrics.gmScoreType.push_back("Inner div relative to reference");
+  //cout<<"KL tracking error conditioned on reference ("<<ttee<<")"<<endl;
   gmetrics.computeMeanTrackKL(1, ttee);
   tide += ttee;
-  cout<<"KL tracking error conditioned on system ("<<ttee<<")"<<endl;
-  cout<<"Total inner divergence error ("<<tide<<")"<<endl;
+  gmetrics.gmScores.push_back(ttee);
+  gmetrics.gmScoreType.push_back("Inner div relative to system   ");
+  //cout<<"KL tracking error conditioned on system ("<<ttee<<")"<<endl;
+  gmetrics.gmScores.push_back(tide);
+  gmetrics.gmScoreType.push_back("Total inner div error          ");
+  //cout<<"Total inner divergence error ("<<tide<<")"<<endl;
 
-  //gmetrics.processOuterDiv_3(0);
-  //gmetrics.processOuterDiv_3(1);
+  gmetrics.processOuterDiv_3(0);
+  gmetrics.processOuterDiv_3(1);
+
+  gmetrics.printSummary();
 
   return(0);
 }

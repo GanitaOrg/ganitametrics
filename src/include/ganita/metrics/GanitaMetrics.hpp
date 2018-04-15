@@ -73,8 +73,7 @@ public:
   int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, 
 			int ref_or_sys, double& score);
   int purifyTrackPairKL_2(int64_t ref_nn, int64_t sys_nn, 
-			  int ref_or_sys, double& score, 
-			  GanitaMetricsMat& rMat);
+			  int ref_or_sys, double& score);
   int computeMeanTrackKL(int ref_or_sys, double& track_error);
   int processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, 
 		      GanitaMetricsMat& rMat, int set1, int set2);
@@ -82,5 +81,9 @@ public:
   int processOuterDiv_3(int tset);
   int updateStats(int tset, uint64_t tr_num, 
 		  GanitaMetricsMat rMat1, GanitaMetricsMat rMat2);
+  vector<double> gmScores;
+  vector<string> gmScoreType;
+  int printSummary(void);
+  int testSummary(void);
 };
 

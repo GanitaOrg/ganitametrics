@@ -1219,10 +1219,10 @@ int GanitaMetrics::purifyTrackKL_2(int64_t ref_nn, int ref_or_sys, double& cross
   double score;
 
   num = gmts[ref_or_sys].returnNumTracks();
-  GanitaMetricsMat *refMat[num];
-  for(ii=0; ii<num; ii++){
-    refMat[ii] = new GanitaMetricsMat(1920, 1080);
-  }
+  //GanitaMetricsMat *refMat[num];
+//   for(ii=0; ii<num; ii++){
+//     refMat[ii] = new GanitaMetricsMat(1920, 1080);
+//   }
   
   crossKL = 0;
   for(ii=0; ii<num; ii++){
@@ -1408,7 +1408,7 @@ int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, int ref_or_
 }
 
 int GanitaMetrics::purifyTrackPairKL_2
-(int64_t ref_nn, int64_t sys_nn, int ref_or_sys, double& score, GanitaMetricsMat& rMat)
+(int64_t ref_nn, int64_t sys_nn, int ref_or_sys, double& score)
 {
   GanitaMetricsTopDetection gmd1, gmd2;
   std::shared_ptr< GanitaMetricsTrack > refTrack, sysTrack;
@@ -1703,9 +1703,10 @@ int GanitaMetrics::processOuterDiv_3(int tset)
   uint64_t min_frame, max_frame;
   std::shared_ptr< GanitaMetricsTrack > refTrack;
   double score, alpha;
-  double tscore1, tscore2;
+  double tscore1, tscore2, tscore3;
+  double densityKL;
 
-  tscore1 = 0; tscore2 = 0;
+  tscore1 = 0; tscore2 = 0; tscore3 = 0;
   for(ii=0; ii<gmts[tset].returnNumTracks(); ii++){
     refTrack = gmts[tset].returnTrack(ii);
     refTrack->initStats(3);
@@ -1719,24 +1720,48 @@ int GanitaMetrics::processOuterDiv_3(int tset)
 
   for(ii=0; ii<gmts[tset].returnNumTracks(); ii++){
     refTrack = gmts[tset].returnTrack(ii);
-    cout<<"Track("<<ii<<") Stats "<<"("<<refTrack->stats[0]<<") "
-	<<"("<<refTrack->stats[1]<<") "<<"("<<refTrack->stats[2]<<")"<<endl;
+    if(verbosity > 0){
+      cout<<"Track("<<ii<<") Stats "<<"("<<refTrack->stats[0]<<") "
+	  <<"("<<refTrack->stats[1]<<") "<<"("<<refTrack->stats[2]<<")"<<endl;
+    }
     if(refTrack->stats[0] > 0){
-      alpha = ((double) (refTrack->stats[0] - refTrack->stats[1])) / ((double) refTrack->stats[0]);
+      alpha = (refTrack->stats[0] - refTrack->stats[1]) / refTrack->stats[0];
+      densityKL = refTrack->stats[2] / refTrack->stats[0];
+      
     }
     else{
       // This should only happen for tracks with no volumes.
-      alpha = 0;
+      alpha = 0; densityKL = 0;
     }
     score = log( ((double) 1 + gmts[1-tset].returnNumTracks()) 
 		 / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
-    cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
+    if(verbosity > 0){
+      cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
+    }
     tscore1 += score / gmts[tset].returnNumTracks();
     tscore2 += (1 - alpha) / gmts[tset].returnNumTracks();
+    tscore3 += densityKL / gmts[tset].returnNumTracks();
   }
 
-  cout<<"Final missed detection or false alarm score ("<<tscore1<<")"<<endl;
-  cout<<"Average missed detection or false alarm error ("<<tscore2<<")"<<endl;
+  if(tset == 0){
+    gmScores.push_back(tscore1);
+    gmScoreType.push_back("Missed detection error         ");
+    gmScores.push_back(tscore2);
+    gmScoreType.push_back("Missed detection proportion    ");
+    gmScores.push_back(tscore3);
+    gmScoreType.push_back("Density error rel to reference ");
+  }
+  else{
+    gmScores.push_back(tscore1);
+    gmScoreType.push_back("False alarm error              ");
+    gmScores.push_back(tscore2);
+    gmScoreType.push_back("False alarm proportion         ");
+    gmScores.push_back(tscore3);
+    gmScoreType.push_back("Density error rel to system    ");
+  }
+  //cout<<"Final missed detection or false alarm score ("<<tscore1<<")"<<endl;
+  //cout<<"Average missed detection or false alarm proportion ("<<tscore2<<")"<<endl;
+  //cout<<"Density difference score ("<<tscore3<<")"<<endl;
 
   return(1);
 }
@@ -1756,6 +1781,7 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
     // need to initialize stats first
     return(-1);
   }
+  if(rMat1.returnNCols() * rMat1.returnNRows() <= 0){ return(-1); }
   refTrack->stats[0] += rMat1.returnNCols() * rMat1.returnNRows();
   for(ii=0; ii<rMat1.returnNCols(); ii++){
     for(jj=0; jj<rMat1.returnNRows(); jj++){
@@ -1771,20 +1797,98 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
 	  // this probably shouldn't happen
 	  // possibly we excluded the refTrack
 	  kL += log((double) rMat1.get(ii, jj)); 
+	  //cout<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
 	}
 	else{
-	  if(rMat2.get(ii, jj) > rMat1.get(ii, jj)){
-	    kL += log(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
+	  if(rMat2.get(ii, jj) < rMat1.get(ii, jj)){
+	    kL += log(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
+// 	    if(kL > 0){
+// 	      cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+// 	    }
 	  }
 	  else{
-	    kL += log(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
+	    // Next lines may be commented out.
+	    // If not commented out, may lead to double counting errors.
+// 	    kL += log(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
+// 	    if(kL > 0){
+// 	      cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+// 	    }
 	  }
 	}
       }
     }
   }
   refTrack->stats[1] += no_overlap;
+  //refTrack->stats[2] += (kL / (rMat1.returnNCols() * rMat1.returnNRows()));
   refTrack->stats[2] += kL;
+  //cout<<"Added kL:"<<tr_num<<":"<<kL<<endl;
+
+  return(1);
+}
+
+int GanitaMetrics::printSummary(void)
+{
+  if(gmScores.size() < 9){ return(-1); }
+  gmScores.push_back(gmScores[2] + gmScores[3]+gmScores[5]+gmScores[6]+gmScores[8]);
+  gmScoreType.push_back("Total KL-track error           ");
+  fprintf(stdout, "***************************************************\n");
+  fprintf(stdout, "*                    Summary                      *\n");
+  fprintf(stdout, "***************************************************\n");
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[0].c_str(), gmScores[0]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[1].c_str(), gmScores[1]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[2].c_str(), gmScores[2]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[3].c_str(), gmScores[3]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[4].c_str(), gmScores[4]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[5].c_str(), gmScores[5]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[6].c_str(), gmScores[6]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[7].c_str(), gmScores[7]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[8].c_str(), gmScores[8]);
+  fprintf(stdout, "*-------------------------------------------------*\n");
+  fprintf(stdout, "* %s \t=%lf *\n", gmScoreType[9].c_str(), gmScores[9]);
+  fprintf(stdout, "***************************************************\n");
+
+  return(1);
+}
+
+int GanitaMetrics::testSummary(void)
+{
+  gmScores.push_back(0.286446);
+  gmScoreType.push_back("Inner div relative to reference");
+  gmScores.push_back(0.44522);
+  gmScoreType.push_back("Inner div relative to system   ");
+  gmScores.push_back(0.731667);
+  gmScoreType.push_back("Total inner div error          ");
+  gmScores.push_back(0.96975);
+  gmScoreType.push_back("Missed detection score         ");
+  gmScores.push_back(0.438332);
+  gmScoreType.push_back("Missed detection proportion    ");
+  gmScores.push_back(0.0821141);
+  gmScoreType.push_back("Density score rel to reference ");
+  gmScores.push_back(0.244259);
+  gmScoreType.push_back("False alarm score              ");
+  gmScores.push_back(0.198179);
+  gmScoreType.push_back("False alarm proportion         ");
+  gmScores.push_back(0.0896467);
+  gmScoreType.push_back("Density score rel to system    ");
+  gmScores.push_back(gmScores[2] + gmScores[3]+gmScores[5]+gmScores[6]+gmScores[8]);
+  gmScoreType.push_back("Total KL-track error           ");
+
+  if(gmScores.size() < 9){ return(-1); }
+  fprintf(stdout, "***************************************************\n");
+  fprintf(stdout, "*                    Summary                      *\n");
+  fprintf(stdout, "***************************************************\n");
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[0].c_str(), gmScores[0]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[1].c_str(), gmScores[1]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[2].c_str(), gmScores[2]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[3].c_str(), gmScores[3]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[4].c_str(), gmScores[4]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[5].c_str(), gmScores[5]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[6].c_str(), gmScores[6]);
+  fprintf(stdout, "* %s \t %lf *\n", gmScoreType[7].c_str(), gmScores[7]);
+  fprintf(stdout, "* %s \t+%lf *\n", gmScoreType[8].c_str(), gmScores[8]);
+  fprintf(stdout, "*-------------------------------------------------*\n");
+  fprintf(stdout, "* %s \t=%lf *\n", gmScoreType[9].c_str(), gmScores[9]);
+  fprintf(stdout, "***************************************************\n");
 
   return(1);
 }
