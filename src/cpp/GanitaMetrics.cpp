@@ -1893,3 +1893,46 @@ int GanitaMetrics::testSummary(void)
   return(1);
 }
 
+uint64_t GanitaMetrics::setMajorResolution()
+{
+
+  if((gmts[0].returnFrameWidth() == 0) ||(gmts[1].returnFrameWidth() == 0) || 
+     (gmts[0].returnFrameHeight() == 0) ||(gmts[1].returnFrameHeight() == 0)){
+    // try computing resolution
+    gmts[0].computeResolution();
+    gmts[1].computeResolution();
+  }
+
+  if((gmts[0].returnFrameWidth() == 0) ||(gmts[1].returnFrameWidth() == 0) || 
+     (gmts[0].returnFrameHeight() == 0) ||(gmts[1].returnFrameHeight() == 0)){
+    // try computing resolution
+    return(0);
+  }
+
+  if(gmts[0].returnFrameWidth() > gmts[1].returnFrameWidth()){
+    major_width = gmts[0].returnFrameWidth();
+  }
+  else{
+    major_width = gmts[1].returnFrameWidth();
+  }
+
+  if(gmts[0].returnFrameHeight() > gmts[1].returnFrameHeight()){
+    major_height = gmts[0].returnFrameHeight();
+  }
+  else{
+    major_height = gmts[1].returnFrameHeight();
+  }
+
+  return(major_height);
+}
+
+uint64_t GanitaMetrics::returnMajorWidth()
+{
+  return(major_width);
+}
+
+uint64_t GanitaMetrics::returnMajorHeight()
+{
+  return(major_height);
+}
+

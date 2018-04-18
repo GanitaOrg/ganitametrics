@@ -22,6 +22,10 @@ int main(int argc, char *argv[])
   //gmetrics.closeBuffers();
   gmetrics.readTop(0);
   gmetrics.readTop(1);
+  //gmetrics.setMajorResolution();
+  //cout<<"Computed resolution ("<<gmetrics.returnMajorWidth()<<","
+  //<<gmetrics.returnMajorHeight()<<")"<<endl;
+
   gmetrics.computeMeanTrackKL(0, ttee);
   tide = ttee;
   gmetrics.gmScores.push_back(ttee);

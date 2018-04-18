@@ -31,6 +31,8 @@ private:
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmsTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
+  uint64_t major_width;
+  uint64_t major_height;
 public:
   GanitaMetrics(void);
   GanitaMetrics(int vv);                   // set verbosity=vv
@@ -85,5 +87,8 @@ public:
   vector<string> gmScoreType;
   int printSummary(void);
   int testSummary(void);
+  uint64_t setMajorResolution();
+  uint64_t returnMajorWidth();
+  uint64_t returnMajorHeight();
 };
 

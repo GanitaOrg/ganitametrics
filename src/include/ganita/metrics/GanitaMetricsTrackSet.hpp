@@ -25,6 +25,7 @@ private:
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
+  uint64_t frame_width, frame_height;
 public:
   GanitaMetricsTrackSet(void);
   GanitaMetricsTrackSet(int vv);                   // set verbosity=vv
@@ -45,6 +46,9 @@ public:
   int64_t setNumTracks(uint64_t tnum);
   uint64_t returnNumTracks(void);
   int computeEndPoints(void);
+  int computeResolution(void);
+  uint64_t returnFrameWidth();
+  uint64_t returnFrameHeight();
   //int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn);
 //   int printDetDenFrame(void);
 //   int computeKL_DensityDistance(uint64_t fr_num);
