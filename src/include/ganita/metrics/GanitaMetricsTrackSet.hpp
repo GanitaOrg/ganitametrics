@@ -33,7 +33,7 @@ public:
   uint64_t setEnd(uint64_t ee);
   uint64_t returnStart(void);
   uint64_t returnEnd(void);
-  int init(char *buf_input);
+  int init(const char *buf_input);
   //int readMot(void);
   int readTopAsOne(void);
   int readTop(void);

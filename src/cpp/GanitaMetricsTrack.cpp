@@ -141,8 +141,8 @@ int GanitaMetricsTrack::computeDetectionDensity
     box_x2 = (unsigned long) (gmd.returnX_Anchor() + gmd.returnWidth());
     box_y1 = (unsigned long) gmd.returnY_Anchor();
     box_y2 = (unsigned long) (gmd.returnY_Anchor() + gmd.returnHeight());
-    if(box_x2 > 1920) box_x2 = 1920;
-    if(box_y2 > 1080) box_y2 = 1080;
+    if(box_x2 > frame_det_den.returnNCols()) box_x2 = frame_det_den.returnNCols();
+    if(box_y2 > frame_det_den.returnNRows()) box_y2 = frame_det_den.returnNRows();
     for(yy=box_y1; yy<box_y2; yy++){
       for(xx=box_x1; xx<box_x2; xx++){
 	frame_det_den.set(xx, yy, frame_det_den.get(xx,yy) + 1);

@@ -1,4 +1,6 @@
-// This class implements algorithms that 
+// Author: T.M. Adams (ganita.org)
+// This class implements algorithms that implement a tracking performance 
+// metric loosely based on KL-divergence. 
 #include <string>
 #include <vector>
 #include <iostream>
@@ -6,18 +8,11 @@
 #include <sstream>
 #include <cstdio>
 
+#include "ganita/metrics/GanitaMetricsOptions.hpp"
 #include "ganita/graph/GanitaBuffer.hpp"
-#include "ganita/metrics/GanitaMetricsVersion.hpp"
 #include "ganita/metrics/GanitaMetricsMat.hpp"
 #include "ganita/metrics/GanitaMetricsTrackSet.hpp"
 #include "ganita/metrics/GanitaMetricsVisualize.hpp"
-
-#ifndef STAT_DENOM
-#define STAT_DENOM 1000
-#endif
-
-//std::array<string,6> gm_colors[] = 
-//	{"red", "blue", "yellow", "purple", "orange", "green"};
 
 class GanitaMetrics
 {
@@ -36,10 +31,8 @@ private:
 public:
   GanitaMetrics(void);
   GanitaMetrics(int vv);                   // set verbosity=vv
-  int init(char *ref_input, char *sys_input);
-  int init_2(char *ref_input, char *sys_input);
+  int init(GanitaMetricsOptions myOpt);
   int readMotReference(void);
-  int readTopReference(void);
   int64_t addRefTrack(void);
   int readTopSystem(void);
   int64_t addSysTrack(void);
@@ -71,7 +64,6 @@ public:
   int computeTrackOuterDiv
   (int64_t ref_nn, double iKL, int flip, double& scoreKL);
   int purifyTrackKL(int64_t ref_nn, int ref_or_sys, double& crossKL);
-  int purifyTrackKL_2(int64_t ref_nn, int ref_or_sys, double& crossKL);
   int purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, 
 			int ref_or_sys, double& score);
   int purifyTrackPairKL_2(int64_t ref_nn, int64_t sys_nn, 

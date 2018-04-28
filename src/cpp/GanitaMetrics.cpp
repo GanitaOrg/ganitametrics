@@ -1,3 +1,6 @@
+// Author: T.M. Adams (ganita.org)
+// This class implements algorithms that implement a tracking performance 
+// metric loosely based on KL-divergence. 
 // This file contains the methods for GanitaMetrics. 
 
 #include "ganita/metrics/GanitaMetrics.hpp"
@@ -25,25 +28,31 @@ GanitaMetrics::GanitaMetrics(int vv)
   gm_colors.push_back("green");
 }
 
-int GanitaMetrics::init(char *ref_input, char *sys_input)
+int GanitaMetrics::init(GanitaMetricsOptions myOpt)
 {
-  gmr = new GanitaBuffer();
-  gmr->open(ref_input);
-  cout<<"Reference file size = "<<gmr->size()<<endl;
+  verbosity = myOpt.returnVerbosity();
+  if(myOpt.returnResFlag() < 2){
+    major_width = myOpt.returnResX();
+    major_height = myOpt.returnResY();
+  }
+  else{
+    setMajorResolution();
+  }
 
-  gms = new GanitaBuffer();
-  gms->open(sys_input);
-  cout<<"System file size = "<<gms->size()<<endl;
+  if(gmts[0].init(myOpt.returnFileName(0).c_str()) < 1){
+    if(verbosity > 0){
+      std::cerr<<"Unable to open input file ("<<myOpt.returnFileName(0)<<")"<<std::endl;
+    }
+    return(0);
+  }
+  if(gmts[1].init(myOpt.returnFileName(1).c_str()) < 1){
+    if(verbosity > 0){
+      std::cerr<<"Unable to open input file ("<<myOpt.returnFileName(1)<<")"<<std::endl;
+    }
+    return(0);
+  }
 
-  return(1);
-}
-
-int GanitaMetrics::init_2(char *ref_input, char *sys_input)
-{
-  gmts[0].init(ref_input);
-  gmts[1].init(sys_input);
-
-  return(1);
+  return(2);
 }
 
 int GanitaMetrics::readMotReference(void)
@@ -77,62 +86,6 @@ int GanitaMetrics::readMotReference(void)
     cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
     line = "";
   }
-  return(1);
-}
-
-int GanitaMetrics::readTopReference(void)
-{
-  int64_t new_id;
-  int64_t new_frame_number;
-  int new_headValid;
-  int new_bodyValid;
-  double new_headLeft;
-  double new_headTop;
-  double new_headRight;
-  double new_headBottom;
-  double new_bodyLeft;
-  double new_bodyTop;
-  double new_bodyRight;
-  double new_bodyBottom;
-  double new_confidence;
-  int new_verbosity;
-  uint64_t num;
-  GanitaMetricsTopDetection gmd;
-  int64_t min_frame, max_frame;
-
-  min_frame = 1<<31;
-  max_frame = -1;
-  
-  addRefTrack();
-  
-  string line("");
-  while(gmr->getLine(line) >= 0){
-    //cout<<line;
-    sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d",  
-	   &new_id, &new_frame_number, &new_headValid, &new_bodyValid, 
-	   &new_headLeft, &new_headTop, &new_headRight, &new_headBottom,
-	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom, 
-	   &new_confidence, &new_verbosity);
-
-    if(new_frame_number < min_frame){
-      min_frame = new_frame_number;
-    }
-    if(new_frame_number > max_frame){
-      max_frame = new_frame_number;
-    }
- 
-    num = gmrTracks[0]->addTopDetection(new_id, new_frame_number, new_headValid, new_bodyValid, 
-				       new_headLeft, new_headTop, new_headRight, new_headBottom,
-				       new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
-				       new_confidence, new_verbosity);
-    gmrTracks[0]->returnTopGMD(num - 1, gmd);
-    //cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
-    line = "";
-  }
-
-  gmrTracks[0]->setStart(min_frame);
-  gmrTracks[0]->setEnd(max_frame);
-
   return(1);
 }
 
@@ -361,13 +314,13 @@ int GanitaMetrics::visTracks(int tset, int tnum)
 // This was used to test the detection density on a per frame basis.
 int GanitaMetrics::printDetDenFrame(void)
 {
-  GanitaMetricsMat det_mat(1920,1080);
+  GanitaMetricsMat det_mat(major_width,major_height);
   uint64_t ii, jj;
 
   gmrTracks[0]->computeDetectionDensity(0,det_mat);
 
-  for(jj=0; jj<1080; jj++){
-    for(ii=0; ii<1920; ii++){
+  for(jj=0; jj<major_height; jj++){
+    for(ii=0; ii<major_width; ii++){
       cout<<det_mat.get(ii,jj)<<" ";
     }
     cout<<endl;
@@ -379,13 +332,13 @@ int GanitaMetrics::printDetDenFrame(void)
 // This was used to test the detection density on a per frame basis.
 int GanitaMetrics::printDetDenFrame(int ss)
 {
-  GanitaMetricsMat det_mat(1920,1080);
+  GanitaMetricsMat det_mat(major_width,major_height);
   uint64_t ii, jj;
 
   gmts[ss % 2].returnTrack(0)->computeDetectionDensity(0,det_mat);
 
-  for(jj=0; jj<1080; jj++){
-    for(ii=0; ii<1920; ii++){
+  for(jj=0; jj<major_height; jj++){
+    for(ii=0; ii<major_width; ii++){
       cout<<det_mat.get(ii,jj)<<" ";
     }
     cout<<endl;
@@ -412,8 +365,8 @@ int GanitaMetrics::printDetDenFrame(int ss)
 // difference in ref and sys densities where they are absolutely continuous.
 int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num)
 {
-  GanitaMetricsMat det_mat_ref(1920,1080);
-  GanitaMetricsMat det_mat_sys(1920,1080);
+  GanitaMetricsMat det_mat_ref(major_width,major_height);
+  GanitaMetricsMat det_mat_sys(major_width,major_height);
   //GanitaMetricsTopDetection gmsd;
   uint64_t ii, jj;
   uint64_t overlap, no_overlap;
@@ -431,8 +384,8 @@ int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num)
 
   //gmsTracks[0]->returnTopGMD(fr_num, gmsd);
 
-  for(jj=0; jj<1080; jj++){
-    for(ii=0; ii<1920; ii++){
+  for(jj=0; jj<major_height; jj++){
+    for(ii=0; ii<major_width; ii++){
       if(det_mat_ref.get(ii,jj) == 0){
 	if(det_mat_sys.get(ii,jj) == 0){
 	  // Not part of the support of either density.
@@ -452,10 +405,10 @@ int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num)
 	  // In support of both densities.
 	  overlap++;
 	  if(det_mat_ref.get(ii,jj) > det_mat_sys.get(ii,jj)){
-	    kL1 += log( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
 	  }
 	  else{
-	    kL1 += log( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
 	  }
 	}
       }
@@ -499,8 +452,8 @@ int64_t GanitaMetrics::printTrackStats(void)
 // difference in ref and sys densities where they are absolutely continuous.
 int GanitaMetrics::computeKL_DensityDistance_2(uint64_t fr_num)
 {
-  GanitaMetricsMat det_mat_ref(1920,1080);
-  GanitaMetricsMat det_mat_sys(1920,1080);
+  GanitaMetricsMat det_mat_ref(major_width,major_height);
+  GanitaMetricsMat det_mat_sys(major_width,major_height);
   uint64_t ii, jj;
   uint64_t overlap, no_overlap;
   uint64_t ref_not_sys, sys_not_ref;
@@ -515,8 +468,8 @@ int GanitaMetrics::computeKL_DensityDistance_2(uint64_t fr_num)
   gmts[0].returnTrack(0)->computeDetectionDensity(fr_num,det_mat_ref);
   gmts[1].returnTrack(0)->computeDetectionDensity(fr_num,det_mat_sys);
 
-  for(jj=0; jj<1080; jj++){
-    for(ii=0; ii<1920; ii++){
+  for(jj=0; jj<major_height; jj++){
+    for(ii=0; ii<major_width; ii++){
       if(det_mat_ref.get(ii,jj) == 0){
 	if(det_mat_sys.get(ii,jj) == 0){
 	  // Not part of the support of either density.
@@ -536,10 +489,10 @@ int GanitaMetrics::computeKL_DensityDistance_2(uint64_t fr_num)
 	  // In support of both densities.
 	  overlap++;
 	  if(det_mat_ref.get(ii,jj) > det_mat_sys.get(ii,jj)){
-	    kL1 += log( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
 	  }
 	  else{
-	    kL1 += log( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
 	  }
 	}
       }
@@ -578,8 +531,8 @@ int GanitaMetrics::computeKL_DensityDistance_2(uint64_t fr_num)
 // difference in ref and sys densities where they are absolutely continuous.
 int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num, uint64_t ref_nn, uint64_t sys_nn)
 {
-  GanitaMetricsMat det_mat_ref(1920,1080);
-  GanitaMetricsMat det_mat_sys(1920,1080);
+  GanitaMetricsMat det_mat_ref(major_width,major_height);
+  GanitaMetricsMat det_mat_sys(major_width,major_height);
   uint64_t ii, jj;
   uint64_t overlap, no_overlap;
   uint64_t ref_not_sys, sys_not_ref;
@@ -594,8 +547,8 @@ int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num, uint64_t ref_nn, u
   gmts[0].returnTrack(ref_nn)->computeDetectionDensity(fr_num,det_mat_ref);
   gmts[1].returnTrack(sys_nn)->computeDetectionDensity(fr_num,det_mat_sys);
 
-  for(jj=0; jj<1080; jj++){
-    for(ii=0; ii<1920; ii++){
+  for(jj=0; jj<major_height; jj++){
+    for(ii=0; ii<major_width; ii++){
       if(det_mat_ref.get(ii,jj) == 0){
 	if(det_mat_sys.get(ii,jj) == 0){
 	  // Not part of the support of either density.
@@ -615,10 +568,10 @@ int GanitaMetrics::computeKL_DensityDistance(uint64_t fr_num, uint64_t ref_nn, u
 	  // In support of both densities.
 	  overlap++;
 	  if(det_mat_ref.get(ii,jj) > det_mat_sys.get(ii,jj)){
-	    kL1 += log( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_ref.get(ii,jj)) / ((double) det_mat_sys.get(ii,jj)) );
 	  }
 	  else{
-	    kL1 += log( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
+	    kL1 += log2( ((double) det_mat_sys.get(ii,jj)) / ((double) det_mat_ref.get(ii,jj)) );
 	  }
 	}
       }
@@ -961,7 +914,7 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
   else kule = 0;
 
   if(kule > 0){
-    score = -1*kule*log(kule) / log(2);
+    score = -1*kule*log2(kule);
     if(verbosity > 1){
       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
     }
@@ -1135,7 +1088,7 @@ int GanitaMetrics::computeTrackPairOuterDiv
   else kule = 0;
 
   if(kule > 0){
-    score = -1*kule*log(kule) / log(2);
+    score = -1*kule*log2(kule);
     if(verbosity > 1){
       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
     }
@@ -1203,28 +1156,6 @@ int GanitaMetrics::purifyTrackKL(int64_t ref_nn, int ref_or_sys, double& crossKL
 
   crossKL = 0;
   num = gmts[ref_or_sys].returnNumTracks();
-  for(ii=0; ii<num; ii++){
-    if(ii != ref_nn){
-      purifyTrackPairKL(ref_nn, ii, ref_or_sys, score);
-      crossKL += score;
-    }
-  }
-
-  return(1); 
-}
-
-int GanitaMetrics::purifyTrackKL_2(int64_t ref_nn, int ref_or_sys, double& crossKL)
-{
-  int64_t ii, num;
-  double score;
-
-  num = gmts[ref_or_sys].returnNumTracks();
-  //GanitaMetricsMat *refMat[num];
-//   for(ii=0; ii<num; ii++){
-//     refMat[ii] = new GanitaMetricsMat(1920, 1080);
-//   }
-  
-  crossKL = 0;
   for(ii=0; ii<num; ii++){
     if(ii != ref_nn){
       purifyTrackPairKL(ref_nn, ii, ref_or_sys, score);
@@ -1394,7 +1325,7 @@ int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, int ref_or_
   }
   else kule = 0;
   if(kule > 0){
-    score = -1*kule*log(kule) / log(2);
+    score = -1*kule*log2(kule);
     if(verbosity > 1){
       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
     }
@@ -1567,7 +1498,7 @@ int GanitaMetrics::purifyTrackPairKL_2
   }
   else kule = 0;
   if(kule > 0){
-    score = -1*kule*log(kule) / log(2);
+    score = -1*kule*log2(kule);
     if(verbosity > 1){
       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
     }
@@ -1733,7 +1664,7 @@ int GanitaMetrics::processOuterDiv_3(int tset)
       // This should only happen for tracks with no volumes.
       alpha = 0; densityKL = 0;
     }
-    score = log( ((double) 1 + gmts[1-tset].returnNumTracks()) 
+    score = log2( ((double) 1 + gmts[1-tset].returnNumTracks()) 
 		 / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
     if(verbosity > 0){
       cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
@@ -1772,6 +1703,7 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
   uint64_t ii, jj;
   double no_overlap, kL;
   std::shared_ptr< GanitaMetricsTrack > refTrack;
+  double myratio;
 
   no_overlap = 0;
   kL = 0;
@@ -1796,20 +1728,28 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
 	if(rMat2.get(ii, jj) == 0){
 	  // this probably shouldn't happen
 	  // possibly we excluded the refTrack
-	  kL += log((double) rMat1.get(ii, jj)); 
-	  //cout<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+	  //kL += log2((double) rMat1.get(ii, jj));
+	  myratio = log2((double) rMat1.get(ii, jj));
+	  kL += myratio * log2(myratio);
+	  if(verbosity > 2){
+	    cout<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+	  }
 	}
 	else{
 	  if(rMat2.get(ii, jj) < rMat1.get(ii, jj)){
-	    kL += log(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
-// 	    if(kL > 0){
-// 	      cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
-// 	    }
+	    //kL += log2(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
+	    myratio = ((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj));
+	    kL += myratio * log2(myratio);
+	    if(verbosity > 2){
+	      if(kL > 0){
+		cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+	      }
+	    }
 	  }
 	  else{
 	    // Next lines may be commented out.
 	    // If not commented out, may lead to double counting errors.
-// 	    kL += log(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
+// 	    kL += log2(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
 // 	    if(kL > 0){
 // 	      cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
 // 	    }

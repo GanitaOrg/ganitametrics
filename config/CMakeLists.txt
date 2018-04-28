@@ -7,7 +7,7 @@ project(GanitaMetrics CXX C)
 
 ## Version
 set(GanitaMetrics_VERSION_MAJOR "0")
-set(GanitaMetrics_VERSION_MINOR "2")
+set(GanitaMetrics_VERSION_MINOR "3")
 set(GanitaMetrics_VERSION_PATCH "0")
 
 cmake_minimum_required(VERSION 2.8)
@@ -69,7 +69,7 @@ endif()
 include_directories(/usr/local/include ../src/include)
 link_directories (/usr/local/lib)
 
-add_library(GanitaMetrics SHARED ../src/cpp/GanitaMetrics.cpp ../src/cpp/GanitaMetricsVersion.cpp ../src/cpp/GanitaMetricsUtil.cpp ../src/cpp/GanitaMetricsMat.cpp ../src/cpp/GanitaMetricsMotDetection.cpp  ../src/cpp/GanitaMetricsTopDetection.cpp ../src/cpp/GanitaMetricsTrack.cpp ../src/cpp/GanitaMetricsTrackSet.cpp ../src/cpp/GanitaMetricsVisualize.cpp)
+add_library(GanitaMetrics SHARED ../src/cpp/GanitaMetrics.cpp ../src/cpp/GanitaMetricsVersion.cpp ../src/cpp/GanitaMetricsUtil.cpp ../src/cpp/GanitaMetricsMat.cpp ../src/cpp/GanitaMetricsMotDetection.cpp  ../src/cpp/GanitaMetricsTopDetection.cpp ../src/cpp/GanitaMetricsTrack.cpp ../src/cpp/GanitaMetricsTrackSet.cpp ../src/cpp/GanitaMetricsVisualize.cpp ../src/cpp/GanitaMetricsOptions.cpp)
 
 target_include_directories (GanitaMetrics PUBLIC /usr/local/include ../src/include ../src/cpp)
 

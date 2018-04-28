@@ -38,10 +38,12 @@ uint64_t GanitaMetricsTrackSet::returnEnd(void)
   return(track_set_end);
 }
 
-int GanitaMetricsTrackSet::init(char *buf_input)
+int GanitaMetricsTrackSet::init(const char *buf_input)
 {
   gmb = new GanitaBuffer();
-  gmb->open(buf_input);
+  if(gmb->open((char *) buf_input) < 1){
+    return(0);
+  }
   cout<<"File "<<buf_input<<" size = "<<gmb->size()<<endl;
 
   return(1);
