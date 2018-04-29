@@ -13,6 +13,7 @@ GanitaMetricsOptions::GanitaMetricsOptions(void)
   res_flag = 0; // use default value
   res_x = 1920; // default value
   res_y = 1080; // default value
+  vname = std::string("");
 }
 
 int GanitaMetricsOptions::getOptions(int argc, char* argv[])
@@ -21,8 +22,11 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
   std::string::size_type sz;
   char mystr[500];
 
-  std::vector <std::string> sources;
-  std::string destination;
+  if(argc < 2){
+    outputOptions(argv);
+    return(0);
+  }
+
   for (ii = 1; ii < argc; ++ii) {
     if ((std::string(argv[ii]) == "--help") ||(std::string(argv[ii]) == "-h")) {
       outputOptions(argv);
@@ -32,7 +36,7 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
       if (ii + 1 < argc) { // Make sure we aren't at the end of argv!
 	verbosity = std::stoi(argv[++ii], &sz);
 	//destination = argv[ii++]; // Increment 'ii' so we don't get the argument as the next argv[ii].
-      } else { // Uh-oh, there was no argument to the destination option.
+      } else { // Uh-oh, there was no argument.
 	std::cerr << "--verbose requires a level (0 - 9)" << std::endl;
 	return(-1);
       }
@@ -48,17 +52,27 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
 	    std::cout<<"resolution ("<<res_x<<","<<res_y<<")"<<std::endl;
 	  }
 	}
-      } else { // Uh-oh, there was no argument to the destination option.
+      } else { // Uh-oh, there was no argument.
 	std::cerr << "--resolution requires an argument wxh" << std::endl;
 	return(-1);
-      }  
+      } 
     }
     else if ((std::string(argv[ii]) == "--visualize") ||(std::string(argv[ii]) == "-s")) {
-      if(file_flag == 0){
-	vis_flag = 1;
-      }
-      else{
-	vis_flag = file_flag;
+      if (ii + 1 < argc) { // Make sure we aren't at the end of argv!
+	sscanf(argv[++ii], "%s", mystr);
+	vname = std::string(mystr);
+	if(file_flag == 0){
+	  vis_flag = 1;
+	}
+	else{
+	  vis_flag = file_flag;
+	}
+	if(verbosity > 0){
+	  std::cout<<"video-file ("<<vname<<")"<<std::endl;
+	}
+      } else { // Uh-oh, there was no argument.
+	std::cerr << "--visualize requires an argument" << std::endl;
+	return (-1);
       }
     }
     else if ((std::string(argv[ii]) == "--input-file") ||(std::string(argv[ii]) == "-i")) {
@@ -72,8 +86,18 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
       } else { // Uh-oh, there was no argument to the destination option.
 	std::cerr << "--input-file requires an argument" << std::endl;
 	return (-1);
-      }  
+      }
     }
+  }
+
+  if(file_flag < 1){
+    outputOptions(argv);
+    return(0);
+  }
+
+  if((file_flag < 2) && (vis_flag < 1)){
+    outputOptions(argv);
+    return(0);
   }
 
   if(file_flag > 1){
@@ -87,15 +111,22 @@ int GanitaMetricsOptions::outputOptions(char* argv[])
 {
   GanitaMetricsVersion version;
 
-  std::cout<<"Usage: "<<argv[0]<<" [options] -i file1 [-i file2]"<<std::endl;
-  std::cout<<"Version: "<<version.returnVersion()<<std::endl;
-  std::cout<<"Options:"<<std::endl;
-  std::cout<<"-h,--help\t"<<std::endl;
-  std::cout<<"-v,--verbose\t 0-9"<<std::endl;
-  std::cout<<"-c,--compute-resolution"<<std::endl;
-  std::cout<<"-r,--resolution\t wxh"<<std::endl;
-  std::cout<<"-s,--visualize\t"<<std::endl;
-  std::cout<<"-i,--input-file\t file1"<<std::endl;
+  std::cout<<"----------------------------------------------------------"<<std::endl;
+  std::cout<<"| Usage: "<<argv[0]<<" [options] -i file1 [-i file2]        |"<<std::endl;
+  std::cout<<"| Version: "<<version.returnVersion()
+	   <<"                                           |"<<std::endl;
+  std::cout<<"| Options:                                               |"<<std::endl;
+  std::cout<<"| -h,--help                                              |"<<std::endl;
+  std::cout<<"| -v,--verbose               0-9                         |"<<std::endl;
+  std::cout<<"| -r,--resolution            wxh                         |"<<std::endl;
+  std::cout<<"| -c,--compute-resolution                                |"<<std::endl;
+  std::cout<<"| -s,--visualize             video-file                  |"<<std::endl;
+  std::cout<<"| -i,--input-file            file1                       |"<<std::endl;
+  std::cout<<"----------------------------------------------------------"<<std::endl;
+  std::cout<<"| file1 should be in the csv top format.                 |"<<std::endl;
+  std::cout<<"| video-file should be in a format consumable by ffmpeg. |"<<std::endl;
+  std::cout<<"| Default resolution is 1920x1080.                       |"<<std::endl;
+  std::cout<<"----------------------------------------------------------"<<std::endl;
 
   return(1);
 }
@@ -146,6 +177,14 @@ std::string GanitaMetricsOptions::returnFileName(uint32_t ii)
     // index too large
     return("");
   }
+  if(verbosity > 1){
+    std::cout<<"File "<<ii<<" "<<fnames[ii]<<std::endl;
+  }
   return(fnames[ii]);
+}
+
+std::string GanitaMetricsOptions::returnVideoName(void)
+{
+  return(vname);
 }
 

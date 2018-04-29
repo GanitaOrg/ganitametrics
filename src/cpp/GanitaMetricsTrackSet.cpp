@@ -12,6 +12,19 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   numTracks = 0;
   frame_width = 0;
   frame_height = 0;
+  gm_colors.push_back("red");
+  gm_colors.push_back("blue");
+  gm_colors.push_back("yellow");
+  gm_colors.push_back("purple");
+  gm_colors.push_back("orange");
+  gm_colors.push_back("green");
+  gm_bgcolors.push_back("white");
+  gm_bgcolors.push_back("white");
+  gm_bgcolors.push_back("black");
+  gm_bgcolors.push_back("white");
+  gm_bgcolors.push_back("black");
+  gm_bgcolors.push_back("white");
+  gm_frame_rate = GM_DEFAULT_FRAME_RATE;
 }
 
 uint64_t GanitaMetricsTrackSet::setStart(uint64_t ss)
@@ -130,7 +143,9 @@ int GanitaMetricsTrackSet::readTop(void)
   int64_t *tru_ids = new int64_t[10000000]();
 
   total_tracks = 0;
-    
+  gmb->rewindFile();
+  gmTracks.clear();
+  
   string line("");
   while(gmb->getLine(line) >= 0){
     //cout<<line;
@@ -156,7 +171,7 @@ int GanitaMetricsTrackSet::readTop(void)
        new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
        new_confidence, new_verbosity);
     gmTracks[rev_ids[new_id]]->returnTopGMD(num - 1, gmd);
-    if(verbosity > 1){
+    if(verbosity > 0){
       cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
     }
     line = "";
@@ -195,7 +210,7 @@ int64_t GanitaMetricsTrackSet::addVis(void)
   return(gmvis.size());
 }
 
-int GanitaMetricsTrackSet::visTracks(void)
+int GanitaMetricsTrackSet::visTracks(string myvideoname)
 {
   uint64_t ii, jj, num;
   uint64_t nframes[2];
@@ -206,6 +221,10 @@ int GanitaMetricsTrackSet::visTracks(void)
   ofstream gmvo;
 
   gmvo.open("ganita_metrics_vis.sh");
+
+  if(verbosity > 0){
+    std::cout<<"frame rate ("<<gm_frame_rate<<")"<<std::endl;
+  }
   
   jj = 0; ii = 0;
   num = gmTracks[0]->returnNumberOfTopDetections();
@@ -213,13 +232,13 @@ int GanitaMetricsTrackSet::visTracks(void)
   final_frame = gmd.returnFrameNumber();
   addVis();
   nframes[1] = 0;
-  if(num > 1600){
-    gmTracks[0]->returnTopGMD(1600, gmd);
+  if(num > 450){
+    gmTracks[0]->returnTopGMD(450, gmd);
     nframes[1] = gmd.returnFrameNumber();
   }
   nframes[0] = 0;
   gmvo<<"#!/bin/bash"<<endl;
-  gmvo<<"ffmpeg -i /diva/DIVA/DATA/Tracking/TownCentre/TownCentreXVID.avi -vframes "<<nframes[1]<<" -vf \\"<<endl;
+  gmvo<<"ffmpeg -i "<<myvideoname<<" -vframes "<<nframes[1]<<" -vf \\"<<endl;
   gmvo<<"\"";
   while(ii<num){
     gmTracks[0]->returnTopGMD(ii, gmd);
@@ -227,26 +246,37 @@ int GanitaMetricsTrackSet::visTracks(void)
     //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
     //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
     //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
-    gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1
+//     std::cout<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1;
+//     fflush(stdout);
+//     std::cout<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0);
+//     fflush(stdout);
+//     std::cout<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0);
+//     fflush(stdout);
+//     std::cout<<" : color="<<gm_colors[gmd.returnId() % gm_colors.size()]<<",\\"
+// 	<<std::endl;
+//     fflush(stdout);
+    gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0]<<","<<gmd.returnFrameNumber() - nframes[0]
 	<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0)
 	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)
 	<<" : color="<<gm_colors[gmd.returnId() % gm_colors.size()]<<",\\"
 	<<std::endl;
+    gmvo<<"drawtext=enable=\'eq(n,"<<gmd.returnFrameNumber() - nframes[0]
+	<<")\' :fontfile=/usr/share/fonts/open-sans/OpenSans-Bold.ttf: text=\'"<<gmd.returnId()<<"\': fontcolor="<<gm_colors[gmd.returnId() % gm_colors.size()]<<": fontsize=32: box=1: boxcolor="<<gm_bgcolors[gmd.returnId() % gm_colors.size()]<<"@0.9: x="<<(uint64_t) std::max(gmd.returnX_Anchor()-8,0.0)<<":y="<<(uint64_t) std::max(gmd.returnY_Anchor()-8,0.0)<<",\\"<<std::endl;
     ii++;
-    if(ii % 1600 == 0){
+    if(ii % 450 == 0){
       // end and start another clip with ffmpeg
       sprintf(mystr, "ganita_video_%05ld.avi", jj);
       gmvo<<"drawbox=enable='between(n,1,1)' : x=0 : y=0 : w=0 : h=0 : color=red\" "<<mystr<<endl;
       jj++;
       nframes[0] = nframes[1];
-      if(ii + 1600 < num){
-	gmTracks[0]->returnTopGMD(ii+1600, gmd);
+      if(ii + 450 < num){
+	gmTracks[0]->returnTopGMD(ii+450, gmd);
 	nframes[1] = gmd.returnFrameNumber();
       }
       else nframes[1] = final_frame;
-      start_time = ((double) nframes[0]) / 24.97;
+      start_time = ((double) nframes[0]) / gm_frame_rate;
       //gmvo<<"ffmpeg -i ../data/duke_tracker_output/TownCentre/TownCentreXVID.avi -vf \\"<<endl;
-      gmvo<<"ffmpeg -ss "<<start_time<<" -i /diva/DIVA/DATA/Tracking/TownCentre/TownCentreXVID.avi -vframes "
+      gmvo<<"ffmpeg -ss "<<start_time<<" -i "<<myvideoname<<" -vframes "
 	  <<nframes[1] - nframes[0]<<" -vf \\"<<endl;
       gmvo<<"\"";
     }
@@ -255,6 +285,7 @@ int GanitaMetricsTrackSet::visTracks(void)
   gmvo<<"drawbox=enable='between(n,1,1)' : x=0 : y=0 : w=0 : h=0 : color=red\" "<<mystr<<endl;
   gmvo<<"for f in ./ganita_video_*.avi; do echo \"file '$f'\" >> gv_list.txt; done"<<endl;
   gmvo<<"ffmpeg -f concat -safe 0 -i gv_list.txt -c copy ganita_vis.avi"<<endl;
+  gmvo<<"rm -f ./ganita_video_*.avi"<<endl;
 
   gmvo.close();
 

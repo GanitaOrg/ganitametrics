@@ -6,7 +6,7 @@
 GanitaMetricsVersion::GanitaMetricsVersion(void)
 {
   // This is the main required place to set version numbers. 
-  version = "0.3";
+  version = "0.4";
 }
 
 std::string GanitaMetricsVersion::returnVersion(void)

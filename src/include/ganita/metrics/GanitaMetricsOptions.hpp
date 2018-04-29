@@ -1,4 +1,10 @@
-// This class implements algorithms that 
+#ifndef _GANITAMETRICSOPTIONS_
+#define _GANITAMETRICSOPTIONS_
+
+// T. M. Adams (ganita.org)
+// This class is used to parse command-line arguments. 
+// It is fairly simple to implement this directly rather than 
+// rely on boost or getOpt.
 #include <string>
 #include <vector>
 #include <iostream>
@@ -19,6 +25,7 @@ private:
   uint64_t res_x;   // width
   uint64_t res_y;   // height
   std::vector<std::string> fnames;
+  std::string vname;
 public:
   GanitaMetricsOptions(void);
   int getOptions(int argc, char* argv[]);
@@ -32,5 +39,7 @@ public:
   uint64_t returnResX(void);
   uint64_t returnResY(void);
   std::string returnFileName(uint32_t ii);
+  std::string returnVideoName(void);
 };
 
+#endif

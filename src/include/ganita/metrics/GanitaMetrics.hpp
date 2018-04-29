@@ -28,6 +28,7 @@ private:
   vector<string> gm_colors;
   uint64_t major_width;
   uint64_t major_height;
+  string vname;
 public:
   GanitaMetrics(void);
   GanitaMetrics(int vv);                   // set verbosity=vv
@@ -41,6 +42,7 @@ public:
   int dumpTHeader(void);
   int visTracks(void);
   int visTracks(int tset, int tnum);
+  int visTracks(int tr_num);
   int printDetDenFrame(void);
   int printDetDenFrame(int ss);
   int computeKL_DensityDistance(uint64_t fr_num);
@@ -82,5 +84,7 @@ public:
   uint64_t setMajorResolution();
   uint64_t returnMajorWidth();
   uint64_t returnMajorHeight();
+  uint64_t setMajorWidth(uint64_t ww);
+  uint64_t setMajorHeight(uint64_t hh);
 };
 

@@ -31,14 +31,6 @@ GanitaMetrics::GanitaMetrics(int vv)
 int GanitaMetrics::init(GanitaMetricsOptions myOpt)
 {
   verbosity = myOpt.returnVerbosity();
-  if(myOpt.returnResFlag() < 2){
-    major_width = myOpt.returnResX();
-    major_height = myOpt.returnResY();
-  }
-  else{
-    setMajorResolution();
-  }
-
   if(gmts[0].init(myOpt.returnFileName(0).c_str()) < 1){
     if(verbosity > 0){
       std::cerr<<"Unable to open input file ("<<myOpt.returnFileName(0)<<")"<<std::endl;
@@ -51,6 +43,8 @@ int GanitaMetrics::init(GanitaMetricsOptions myOpt)
     }
     return(0);
   }
+
+  vname = myOpt.returnVideoName();
 
   return(2);
 }
@@ -175,6 +169,13 @@ int64_t GanitaMetrics::addVis(void)
   gmvis.push_back(std::make_shared<GanitaMetricsVisualize>(*newvis));
   delete newvis;
   return(gmvis.size());
+}
+
+int GanitaMetrics::visTracks(int tr_num)
+{
+  gmts[tr_num % 2].visTracks(vname);
+
+  return(1);
 }
 
 int GanitaMetrics::visTracks(void)
@@ -1836,8 +1837,8 @@ int GanitaMetrics::testSummary(void)
 uint64_t GanitaMetrics::setMajorResolution()
 {
 
-  if((gmts[0].returnFrameWidth() == 0) ||(gmts[1].returnFrameWidth() == 0) || 
-     (gmts[0].returnFrameHeight() == 0) ||(gmts[1].returnFrameHeight() == 0)){
+  if((gmts[0].returnFrameWidth() == 0) || (gmts[1].returnFrameWidth() == 0) || 
+     (gmts[0].returnFrameHeight() == 0) || (gmts[1].returnFrameHeight() == 0)){
     // try computing resolution
     gmts[0].computeResolution();
     gmts[1].computeResolution();
@@ -1873,6 +1874,18 @@ uint64_t GanitaMetrics::returnMajorWidth()
 
 uint64_t GanitaMetrics::returnMajorHeight()
 {
+  return(major_height);
+}
+
+uint64_t GanitaMetrics::setMajorWidth(uint64_t ww)
+{
+  major_width = ww;
+  return(major_width);
+}
+
+uint64_t GanitaMetrics::setMajorHeight(uint64_t hh)
+{
+  major_height = hh;
   return(major_height);
 }
 

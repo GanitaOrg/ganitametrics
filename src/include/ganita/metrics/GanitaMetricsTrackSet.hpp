@@ -13,6 +13,10 @@
 #include <ganita/metrics/GanitaMetricsTrack.hpp>
 #include <ganita/metrics/GanitaMetricsVisualize.hpp>
 
+#ifndef GM_DEFAULT_FRAME_RATE
+#define GM_DEFAULT_FRAME_RATE 24.97
+#endif
+
 class GanitaMetricsTrackSet
 {
 private:
@@ -25,7 +29,9 @@ private:
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmTracks;
   std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
+  vector<string> gm_bgcolors;
   uint64_t frame_width, frame_height;
+  double gm_frame_rate;
 public:
   GanitaMetricsTrackSet(void);
   GanitaMetricsTrackSet(int vv);                   // set verbosity=vv
@@ -34,12 +40,11 @@ public:
   uint64_t returnStart(void);
   uint64_t returnEnd(void);
   int init(const char *buf_input);
-  //int readMot(void);
   int readTopAsOne(void);
   int readTop(void);
   int64_t addTrack(void);
   int64_t addVis(void);
-  int visTracks(void);
+  int visTracks(string myvideoname);
   std::shared_ptr<GanitaMetricsTrack> returnTrack(uint64_t tt);
   int64_t setEndFrames(void);
   int64_t printStartStop(void);
@@ -49,10 +54,6 @@ public:
   int computeResolution(void);
   uint64_t returnFrameWidth();
   uint64_t returnFrameHeight();
-  //int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn);
-//   int printDetDenFrame(void);
-//   int computeKL_DensityDistance(uint64_t fr_num);
-//   int64_t printTrackStats(void);
 };
 
 #endif

@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-  GanitaMetrics gmetrics(0);
+  GanitaMetrics gmetrics(0);       // verbosity = 0
   GanitaMetricsOptions gmoptions;
   double ttee;                     // ttee is tracking error
   double tide;                     // tide is total inner divergence error
@@ -18,28 +18,42 @@ int main(int argc, char *argv[])
     std::cerr<<"Rerun in verbose mode for more details"<<std::endl;
     exit(1);
   }
-//   gmetrics.readTopAsOne(0);
-//   gmetrics.readTopAsOne(1);
-//   gmetrics.computeFrameStats();
-  //gmetrics.closeBuffers();
-  gmetrics.readTop(0);
-  gmetrics.readTop(1);
 
-  gmetrics.computeMeanTrackKL(0, ttee);
-  tide = ttee;
-  gmetrics.gmScores.push_back(ttee);
-  gmetrics.gmScoreType.push_back("Inner div relative to reference");
-  gmetrics.computeMeanTrackKL(1, ttee);
-  tide += ttee;
-  gmetrics.gmScores.push_back(ttee);
-  gmetrics.gmScoreType.push_back("Inner div relative to system   ");
-  gmetrics.gmScores.push_back(tide);
-  gmetrics.gmScoreType.push_back("Total inner div error          ");
+  if(gmoptions.returnVisFlag() > 0){
+    gmetrics.readTopAsOne(gmoptions.returnVisFlag()-1);
+    gmetrics.visTracks(gmoptions.returnVisFlag()-1);
+  }
 
-  gmetrics.processOuterDiv_3(0);
-  gmetrics.processOuterDiv_3(1);
+  if(gmoptions.returnCompareFlag() > 0){
+    gmetrics.readTop(0);
+    gmetrics.readTop(1);
+    
+    if(gmoptions.returnResFlag() < 2){
+      gmetrics.setMajorWidth(gmoptions.returnResX());
+      gmetrics.setMajorHeight(gmoptions.returnResY());
+    }
+    else{
+      gmetrics.setMajorResolution();
+      std::cout<<"Setting resolution ("<<gmetrics.returnMajorWidth()<<","
+	  <<gmetrics.returnMajorHeight()<<")"<<std::endl;
+    }
 
-  gmetrics.printSummary();
+    gmetrics.computeMeanTrackKL(0, ttee);
+    tide = ttee;
+    gmetrics.gmScores.push_back(ttee);
+    gmetrics.gmScoreType.push_back("Inner div relative to reference");
+    gmetrics.computeMeanTrackKL(1, ttee);
+    tide += ttee;
+    gmetrics.gmScores.push_back(ttee);
+    gmetrics.gmScoreType.push_back("Inner div relative to system   ");
+    gmetrics.gmScores.push_back(tide);
+    gmetrics.gmScoreType.push_back("Total inner div error          ");
+    
+    gmetrics.processOuterDiv_3(0);
+    gmetrics.processOuterDiv_3(1);
+    
+    gmetrics.printSummary();
+  }
 
   return(0);
 }
