@@ -8,13 +8,17 @@
 #include <fstream>
 #include <sstream>
 #include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <ganita/graph/GanitaBuffer.hpp>
 #include <ganita/metrics/GanitaMetricsTrack.hpp>
-#include <ganita/metrics/GanitaMetricsVisualize.hpp>
 
 #ifndef GM_DEFAULT_FRAME_RATE
 #define GM_DEFAULT_FRAME_RATE 24.97
+#endif
+
+#ifndef GM_DEFAULT_FONT
+#define GM_DEFAULT_FONT "/usr/share/fonts/open-sans/OpenSans-Bold.ttf"
 #endif
 
 class GanitaMetricsTrackSet
@@ -27,11 +31,11 @@ private:
   GanitaBuffer *gmb;
   uint64_t numTracks;
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmTracks;
-  std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
   vector<string> gm_bgcolors;
   uint64_t frame_width, frame_height;
   double gm_frame_rate;
+  string gm_font_path;
 public:
   GanitaMetricsTrackSet(void);
   GanitaMetricsTrackSet(int vv);                   // set verbosity=vv
@@ -43,7 +47,6 @@ public:
   int readTopAsOne(void);
   int readTop(void);
   int64_t addTrack(void);
-  int64_t addVis(void);
   int visTracks(string myvideoname);
   std::shared_ptr<GanitaMetricsTrack> returnTrack(uint64_t tt);
   int64_t setEndFrames(void);

@@ -25,6 +25,7 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   gm_bgcolors.push_back("black");
   gm_bgcolors.push_back("white");
   gm_frame_rate = GM_DEFAULT_FRAME_RATE;
+  gm_font_path = std::string(GM_DEFAULT_FONT);
 }
 
 uint64_t GanitaMetricsTrackSet::setStart(uint64_t ss)
@@ -202,14 +203,6 @@ int64_t GanitaMetricsTrackSet::addTrack(void)
   return(gmTracks.size());
 }
 
-int64_t GanitaMetricsTrackSet::addVis(void)
-{
-  GanitaMetricsVisualize *newvis = new GanitaMetricsVisualize();
-  gmvis.push_back(std::make_shared<GanitaMetricsVisualize>(*newvis));
-  delete newvis;
-  return(gmvis.size());
-}
-
 int GanitaMetricsTrackSet::visTracks(string myvideoname)
 {
   uint64_t ii, jj, num;
@@ -225,12 +218,25 @@ int GanitaMetricsTrackSet::visTracks(string myvideoname)
   if(verbosity > 0){
     std::cout<<"frame rate ("<<gm_frame_rate<<")"<<std::endl;
   }
+
+  // check for environment variables
+  if(const char* env_fr_rate = std::getenv("GM_FRAME_RATE")){
+    gm_frame_rate = std::stod(env_fr_rate);
+    if(verbosity > 0){
+      std::cout << "Frame rate: " <<gm_frame_rate<< '\n';
+    }
+  }
+  if(const char* env_font_path = std::getenv("GM_FONT_PATH")){
+    gm_font_path = std::string(env_font_path);
+    if(verbosity > 0){
+      std::cout << "Font path: " <<gm_font_path<< '\n';
+    }
+  }
   
   jj = 0; ii = 0;
   num = gmTracks[0]->returnNumberOfTopDetections();
   gmTracks[0]->returnTopGMD(num-1, gmd);
   final_frame = gmd.returnFrameNumber();
-  addVis();
   nframes[1] = 0;
   if(num > 450){
     gmTracks[0]->returnTopGMD(450, gmd);
@@ -243,9 +249,6 @@ int GanitaMetricsTrackSet::visTracks(string myvideoname)
   while(ii<num){
     gmTracks[0]->returnTopGMD(ii, gmd);
     //gmvo<<"Frame number = "<<gmd.returnFrameNumber()<<endl;
-    //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
-    //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
-    //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
 //     std::cout<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1;
 //     fflush(stdout);
 //     std::cout<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0);
@@ -261,7 +264,7 @@ int GanitaMetricsTrackSet::visTracks(string myvideoname)
 	<<" : color="<<gm_colors[gmd.returnId() % gm_colors.size()]<<",\\"
 	<<std::endl;
     gmvo<<"drawtext=enable=\'eq(n,"<<gmd.returnFrameNumber() - nframes[0]
-	<<")\' :fontfile=/usr/share/fonts/open-sans/OpenSans-Bold.ttf: text=\'"<<gmd.returnId()<<"\': fontcolor="<<gm_colors[gmd.returnId() % gm_colors.size()]<<": fontsize=32: box=1: boxcolor="<<gm_bgcolors[gmd.returnId() % gm_colors.size()]<<"@0.9: x="<<(uint64_t) std::max(gmd.returnX_Anchor()-8,0.0)<<":y="<<(uint64_t) std::max(gmd.returnY_Anchor()-8,0.0)<<",\\"<<std::endl;
+	<<")\' :fontfile="<<gm_font_path<<": text=\'"<<gmd.returnId()<<"\': fontcolor="<<gm_colors[gmd.returnId() % gm_colors.size()]<<": fontsize=32: box=1: boxcolor="<<gm_bgcolors[gmd.returnId() % gm_colors.size()]<<"@0.9: x="<<(uint64_t) std::max(gmd.returnX_Anchor()-8,0.0)<<":y="<<(uint64_t) std::max(gmd.returnY_Anchor()-8,0.0)<<",\\"<<std::endl;
     ii++;
     if(ii % 450 == 0){
       // end and start another clip with ffmpeg

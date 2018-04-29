@@ -163,14 +163,6 @@ int GanitaMetrics::dumpTHeader(void)
   return (1);
 }
 
-int64_t GanitaMetrics::addVis(void)
-{
-  GanitaMetricsVisualize *newvis = new GanitaMetricsVisualize();
-  gmvis.push_back(std::make_shared<GanitaMetricsVisualize>(*newvis));
-  delete newvis;
-  return(gmvis.size());
-}
-
 int GanitaMetrics::visTracks(int tr_num)
 {
   gmts[tr_num % 2].visTracks(vname);
@@ -194,7 +186,6 @@ int GanitaMetrics::visTracks(void)
   num = gmrTracks[0]->returnNumberOfTopDetections();
   gmrTracks[0]->returnTopGMD(num-1, gmd);
   final_frame = gmd.returnFrameNumber();
-  addVis();
   nframes[1] = 0;
   if(num > 1600){
     gmrTracks[0]->returnTopGMD(1600, gmd);
@@ -207,9 +198,6 @@ int GanitaMetrics::visTracks(void)
   while(ii<num){
     gmrTracks[0]->returnTopGMD(ii, gmd);
     //gmvo<<"Frame number = "<<gmd.returnFrameNumber()<<endl;
-    //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
-    //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
-    //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
     gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1
 	<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0)
 	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)
@@ -262,7 +250,6 @@ int GanitaMetrics::visTracks(int tset, int tnum)
   num = myTrack->returnNumberOfTopDetections();
   myTrack->returnTopGMD(num-1, gmd);
   final_frame = gmd.returnFrameNumber();
-  addVis();
   if(num > 1600){
     myTrack->returnTopGMD(1600, gmd);
     nframes[1] = gmd.returnFrameNumber();
@@ -275,9 +262,6 @@ int GanitaMetrics::visTracks(int tset, int tnum)
   while(ii<num){
     myTrack->returnTopGMD(ii, gmd);
     //gmvo<<"Frame number = "<<gmd.returnFrameNumber()<<endl;
-    //gmvis[0]->ffmpegBox(gmd.returnFrameNumber() - nframes[0] + 1, gmd.returnFrameNumber() - nframes[0] + 1,
-    //		(uint64_t) std::max(gmd.returnX_Anchor(), 0), (uint64_t) std::max(gmd.returnY_Anchor(), 0),
-    //		(uint64_t) gmd.returnWidth(), (uint64_t) gmd.returnHeight());
     gmvo<<"drawbox=enable=\'between(n,"<<gmd.returnFrameNumber() - nframes[0] + 1<<","<<gmd.returnFrameNumber() - nframes[0] + 1
 	<<")\' : x="<<(uint64_t) std::max(gmd.returnX_Anchor(),0.0)<<" : y="<<(uint64_t) std::max(gmd.returnY_Anchor(),0.0)
 	<<" : w="<<(uint64_t) std::max(gmd.returnWidth(),0.0)<<" : h="<<(uint64_t) std::max(gmd.returnHeight(),0.0)

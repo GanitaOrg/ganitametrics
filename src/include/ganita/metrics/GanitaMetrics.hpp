@@ -12,7 +12,6 @@
 #include "ganita/graph/GanitaBuffer.hpp"
 #include "ganita/metrics/GanitaMetricsMat.hpp"
 #include "ganita/metrics/GanitaMetricsTrackSet.hpp"
-#include "ganita/metrics/GanitaMetricsVisualize.hpp"
 
 class GanitaMetrics
 {
@@ -24,7 +23,6 @@ private:
   GanitaMetricsTrackSet gmts[2];
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmrTracks;
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmsTracks;
-  std::vector< std::shared_ptr<GanitaMetricsVisualize> > gmvis;
   vector<string> gm_colors;
   uint64_t major_width;
   uint64_t major_height;
@@ -37,7 +35,6 @@ public:
   int64_t addRefTrack(void);
   int readTopSystem(void);
   int64_t addSysTrack(void);
-  int64_t addVis(void);
   int readT(char *input_tran);
   int dumpTHeader(void);
   int visTracks(void);

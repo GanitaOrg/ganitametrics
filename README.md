@@ -49,6 +49,11 @@ cd ganita_tmp/
 sh ganita_metrics_vis.sh
 ffplay ganita_vis.avi
 
+The visualization option uses default values. 
+To change these values, modify config/setup.sh 
+to appropriate values and then type:
+source setup.sh
+
 gmetrics outputs an error summary to stdout. 
 Sample command-line and output:
 time ./gmetrics -i ../data/duke_tracker_output/TownCentre/TownCentre-groundtruth.top -i ../data/duke_tracker_output/TownCentre/TownCentre-output-BenfoldReidCVPR2011.top -r 1920x1080 -s /home/data/duke_tracker_output/TownCentre/TownCentreXVID.avi
