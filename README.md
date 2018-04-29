@@ -2,7 +2,7 @@ Software that implements a new tracking performance metric based on KL-divergenc
 
 Project: GanitaMetrics Group: Ganita Author: T. Adams, Ph.D.
 
-Requires GanitaGraph which is sold separately. Or, you may obtain it for free: git clone http://ganita.org:8083/ganita/ganitagraph.git
+Requires GanitaGraph which is sold separately. Or, you may obtain it for free: git clone https://gitlab.com/ganita/ganitagraph.git
 
 Compile: cd to root directory containing this README.md file. 
 mkdir build 
