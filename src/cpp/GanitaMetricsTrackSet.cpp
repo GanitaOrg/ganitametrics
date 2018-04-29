@@ -18,12 +18,21 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   gm_colors.push_back("purple");
   gm_colors.push_back("orange");
   gm_colors.push_back("green");
+  gm_colors.push_back("0xFFCCCC");
+  gm_colors.push_back("0xCCFFFF");
+  gm_colors.push_back("0xE0E0E0");
+  gm_colors.push_back("0xE5FFCC");
+  // background colors
   gm_bgcolors.push_back("white");
   gm_bgcolors.push_back("white");
   gm_bgcolors.push_back("black");
   gm_bgcolors.push_back("white");
   gm_bgcolors.push_back("black");
   gm_bgcolors.push_back("white");
+  gm_bgcolors.push_back("black");
+  gm_bgcolors.push_back("black");
+  gm_bgcolors.push_back("black");
+  gm_bgcolors.push_back("black");
   gm_frame_rate = GM_DEFAULT_FRAME_RATE;
   gm_font_path = std::string(GM_DEFAULT_FONT);
 }
@@ -264,7 +273,7 @@ int GanitaMetricsTrackSet::visTracks(string myvideoname)
 	<<" : color="<<gm_colors[gmd.returnId() % gm_colors.size()]<<",\\"
 	<<std::endl;
     gmvo<<"drawtext=enable=\'eq(n,"<<gmd.returnFrameNumber() - nframes[0]
-	<<")\' :fontfile="<<gm_font_path<<": text=\'"<<gmd.returnId()<<"\': fontcolor="<<gm_colors[gmd.returnId() % gm_colors.size()]<<": fontsize=32: box=1: boxcolor="<<gm_bgcolors[gmd.returnId() % gm_colors.size()]<<"@0.9: x="<<(uint64_t) std::max(gmd.returnX_Anchor()-8,0.0)<<":y="<<(uint64_t) std::max(gmd.returnY_Anchor()-8,0.0)<<",\\"<<std::endl;
+	<<")\' :fontfile="<<gm_font_path<<": text=\'"<<gmd.returnId()<<"\': fontcolor="<<gm_colors[gmd.returnId() % gm_colors.size()]<<": fontsize=32: box=1: boxcolor="<<gm_bgcolors[gmd.returnId() % gm_bgcolors.size()]<<"@0.9: x="<<(uint64_t) std::max(gmd.returnX_Anchor()-8,0.0)<<":y="<<(uint64_t) std::max(gmd.returnY_Anchor()-8,0.0)<<",\\"<<std::endl;
     ii++;
     if(ii % 450 == 0){
       // end and start another clip with ffmpeg
