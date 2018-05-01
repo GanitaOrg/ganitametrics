@@ -894,20 +894,48 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
     }
   }
   if((vol2 > 0) && (num1 > 0)){
-    kule = (pnf * vol1) / (num1 * vol2);
+    //kule = (pnf * vol1) / (num1 * vol2);
+    kule = vol1 / vol2;
   }
   else kule = 0;
 
-  if(kule > 0){
-    score = -1*kule*log2(kule);
+// inner divergence formula
+//   if(kule > 0){
+//     score = -1*kule*log2(kule);
+//     if(verbosity > 1){
+//       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
+//     }
+//   }
+//   else{
+//     score = 0;
+//     //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
+//   }
+
+// Try alternative inner divergence score formula.
+  if(kule < 1){
+    score = -1*(1 - kule)*log2(1 - kule);
     if(verbosity > 1){
       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
+      cout<<"pnf "<<pnf<<" num "<<num1<<endl;
     }
   }
   else{
     score = 0;
     //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
   }
+  
+// Another alternative inner divergence without log2.
+//   if(kule < 1){
+//     score = 2*kule*(1 - kule);
+//     if(verbosity > 1){
+//       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
+//       cout<<"pnf "<<pnf<<" num "<<num1<<endl;
+//     }
+//   }
+//   else{
+//     score = 0;
+//     //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
+//   }
   
   return(1);	  
 }
@@ -1649,8 +1677,12 @@ int GanitaMetrics::processOuterDiv_3(int tset)
       // This should only happen for tracks with no volumes.
       alpha = 0; densityKL = 0;
     }
-    score = log2( ((double) 1 + gmts[1-tset].returnNumTracks()) 
-		 / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
+    // Process outer divergence score formula.
+    //     score = log2( ((double) 1 + gmts[1-tset].returnNumTracks()) 
+    // 		  / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
+    // Modified formula to use the number of tracks for tset rather than (1 - tset). 
+    score = log2( ((double) 1 + gmts[tset].returnNumTracks()) 
+		 / ((double) 1 + alpha * gmts[tset].returnNumTracks()) );
     if(verbosity > 0){
       cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
     }
