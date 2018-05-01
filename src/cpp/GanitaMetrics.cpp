@@ -15,6 +15,7 @@ GanitaMetrics::GanitaMetrics(void)
   gm_colors.push_back("purple");
   gm_colors.push_back("orange");
   gm_colors.push_back("green");
+  gm_kl_mode = 0;
 }
 
 GanitaMetrics::GanitaMetrics(int vv)
@@ -26,10 +27,19 @@ GanitaMetrics::GanitaMetrics(int vv)
   gm_colors.push_back("purple");
   gm_colors.push_back("orange");
   gm_colors.push_back("green");
+  gm_kl_mode = 0;
 }
 
 int GanitaMetrics::init(GanitaMetricsOptions myOpt)
 {
+  // check for environment variables
+  if(const char* env_gm_kl_mode = std::getenv("GM_KL_MODE")){
+    gm_kl_mode = std::stoi(env_gm_kl_mode);
+    if(verbosity > -1){
+      std::cout << "env var GM_KL_MODE: " <<gm_kl_mode<< '\n';
+    }
+  }
+
   verbosity = myOpt.returnVerbosity();
   if(gmts[0].init(myOpt.returnFileName(0).c_str()) < 1){
     if(verbosity > 0){
@@ -900,44 +910,69 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
   else kule = 0;
 
 // inner divergence formula
-//   if(kule > 0){
-//     score = -1*kule*log2(kule);
-//     if(verbosity > 1){
-//       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
-//     }
-//   }
-//   else{
-//     score = 0;
-//     //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
-//   }
-
-// Try alternative inner divergence score formula.
-  if(kule < 1){
-    score = -1*(1 - kule)*log2(1 - kule);
-    if(verbosity > 1){
-      cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
-      cout<<"pnf "<<pnf<<" num "<<num1<<endl;
-    }
-  }
-  else{
-    score = 0;
-    //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
-  }
-  
-// Another alternative inner divergence without log2.
-//   if(kule < 1){
-//     score = 2*kule*(1 - kule);
-//     if(verbosity > 1){
-//       cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
-//       cout<<"pnf "<<pnf<<" num "<<num1<<endl;
-//     }
-//   }
-//   else{
-//     score = 0;
-//     //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
-//   }
+  score = computeInnerDivCore(kule);
   
   return(1);	  
+}
+
+double GanitaMetrics::computeInnerDivCore(double mykule)
+{
+  double score2;
+  score2 = 0;
+
+// inner divergence formula
+// Using an environment variable to set the different modes.
+  if((gm_kl_mode == 0) || (gm_kl_mode == 2)){
+    if(mykule > 0){
+      score2 = -1*mykule*log2(mykule);
+      if(verbosity > 1){
+	cout<<"Average overlap per frame "<<mykule<<" KL-score "<<score2<<endl;
+      }
+    }
+    else{
+      score2 = 0;
+      //cout<<"Average overlap per frame "<<mykule<<", KL-score "<<score2<<endl;
+    }
+  }
+  else if(gm_kl_mode == 1){
+    // Try alternative inner divergence score formula.
+    if(mykule < 1){
+      score2 = -1*(1 - mykule)*log2(1 - mykule);
+      if(verbosity > 1){
+	cout<<"Average overlap per frame "<<mykule<<" KL-score1 "<<score2<<endl;
+      }
+    }
+    else{
+      score2 = 0;
+      //cout<<"Average overlap per frame "<<mykule<<", KL-score "<<score2<<endl;
+    }
+  }
+  if(gm_kl_mode == 2){
+       // Try alternative inner divergence score formula.
+    if(mykule < 1){
+      score2 += -1*(1 - mykule)*log2(1 - mykule);
+      if(verbosity > 1){
+	cout<<"Average overlap per frame "<<mykule<<" KL-score2 "<<-1*(1 - mykule)*log2(1 - mykule)
+	    <<endl;
+	cout<<"Average overlap per frame "<<mykule<<" KL-score3 "<<score2<<endl;
+      }
+    }
+  }
+  else if(gm_kl_mode > 2){
+    // Another alternative inner divergence without log2.
+    if(mykule < 1){
+      score2 = 2*mykule*(1 - mykule);
+      if(verbosity > 1){
+	cout<<"Average overlap per frame "<<mykule<<" KL-score "<<score2<<endl;
+      }
+    }
+    else{
+      score2 = 0;
+      //cout<<"Average overlap per frame "<<mykule<<", KL-score "<<score<<endl;
+    }
+  }
+
+  return(score2);
 }
 
 int GanitaMetrics::computeTrackPairOuterDiv
@@ -1337,16 +1372,8 @@ int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, int ref_or_
     kule = (pnf * vol1) / (num1 * vol2);
   }
   else kule = 0;
-  if(kule > 0){
-    score = -1*kule*log2(kule);
-    if(verbosity > 1){
-      cout<<"Average overlap per frame "<<kule<<" KL-score "<<score<<endl;
-    }
-  }
-  else{
-    score = 0;
-    //cout<<"Average overlap per frame "<<kule<<", KL-score "<<score<<endl;
-  }
+
+  score = computeInnerDivCore(kule);
   
   return(1);	  
 }

@@ -27,6 +27,7 @@ private:
   uint64_t major_width;
   uint64_t major_height;
   string vname;
+  int gm_kl_mode;
 public:
   GanitaMetrics(void);
   GanitaMetrics(int vv);                   // set verbosity=vv
@@ -57,6 +58,7 @@ public:
   int computeTrackPairKL_aux(int64_t ref_nn, int64_t sys_nn);
   int computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip,
 			 double& score);
+  double computeInnerDivCore(double mykule);
   int computeTrackPairOuterDiv
   (int64_t ref_nn, int64_t sys_nn, int flip, double& score);
   int computeTrackKL(int64_t ref_nn, double iKL, int flip, double& scoreKL);

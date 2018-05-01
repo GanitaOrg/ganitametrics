@@ -6,3 +6,10 @@
 # source setup.sh
 export GM_FONT_PATH="/usr/share/fonts/open-sans/OpenSans-Bold.ttf"
 export GM_FRAME_RATE=24.97
+export GM_KL_MODE=2
+
+# GM_KL_MODE=0  score = -1*kule*log2(kule);
+# GM_KL_MODE=1  score = -1*(1 - kule)*log2(1 - kule);
+# GM_KL_MODE=2  score = -1*kule*log2(kule) + -1*(1 - kule)*log2(1 - kule);
+# GM_KL_MODE=3  score = 2*kule*(1 - kule);
+
