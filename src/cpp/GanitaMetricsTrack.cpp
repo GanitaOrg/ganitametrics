@@ -232,20 +232,29 @@ int64_t GanitaMetricsTrack::returnFrameIndex(int64_t fr_num)
 
   if(returnNumberOfTopDetections() <= 0) return(-1);
   if((returnStart() > fr_num) || (returnEnd() < fr_num)){
+    if(verbosity > 1){
+      std::cout<<"(Frame,start,end) ("<<fr_num<<","<<returnStart()<<","<<returnEnd()<<")"
+	       <<std::endl;
+    }
     return(-1);
   }
   else{
-    jj = 0; ii = 0;
+    jj = 0; ii = -1;
     while(ii < fr_num){
       returnTopGMD(jj, gmd);
       ii = gmd.returnFrameNumber();
       jj++;
     }
-    if(ii != fr_num){ return(-1); }
+    if(ii != fr_num){
+      if(verbosity > 1){
+	std::cout<<"(Frame,increment,index) ("<<fr_num<<","<<ii<<","<<jj<<")"<<std::endl;
+      }
+      return(-1);
+    }
     else{ return(jj); }
   }
 
-  return(1);
+  return(-1);
 }
 
 int GanitaMetricsTrack::initStats(uint64_t num)

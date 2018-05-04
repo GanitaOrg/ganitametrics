@@ -39,6 +39,7 @@ private:
 public:
   GanitaMetricsTrackSet(void);
   GanitaMetricsTrackSet(int vv);                   // set verbosity=vv
+  int setVerbose(int vv);
   uint64_t setStart(uint64_t ss);
   uint64_t setEnd(uint64_t ee);
   uint64_t returnStart(void);

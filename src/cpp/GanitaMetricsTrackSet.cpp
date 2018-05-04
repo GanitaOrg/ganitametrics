@@ -37,6 +37,13 @@ GanitaMetricsTrackSet::GanitaMetricsTrackSet(void)
   gm_font_path = std::string(GM_DEFAULT_FONT);
 }
 
+int GanitaMetricsTrackSet::setVerbose(int vv)
+{
+  verbosity = vv;
+
+  return(vv);
+}
+
 uint64_t GanitaMetricsTrackSet::setStart(uint64_t ss)
 {
   track_set_start = ss;
@@ -146,7 +153,7 @@ int GanitaMetricsTrackSet::readTop(void)
   double new_bodyBottom;
   double new_confidence;
   int new_verbosity;
-  uint64_t num;
+  uint64_t num, num1;
   GanitaMetricsTopDetection gmd;
   int64_t total_tracks;
   int64_t *rev_ids = new int64_t[10000000]();
@@ -159,11 +166,14 @@ int GanitaMetricsTrackSet::readTop(void)
   string line("");
   while(gmb->getLine(line) >= 0){
     //cout<<line;
-    sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d", 
+    num1 = sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", 
 	   &new_id, &new_frame_number, &new_headValid, &new_bodyValid, 
 	   &new_headLeft, &new_headTop, &new_headRight, &new_headBottom,
-	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom, 
-	   &new_confidence, &new_verbosity);
+	   &new_bodyLeft, &new_bodyTop, &new_bodyRight, &new_bodyBottom);
+    if(num1 < 12){
+      break;
+    }
+    new_confidence = 1; new_verbosity = verbosity;
 
     if(tru_ids[new_id] == 0){
       // create a new track

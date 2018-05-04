@@ -32,15 +32,18 @@ GanitaMetrics::GanitaMetrics(int vv)
 
 int GanitaMetrics::init(GanitaMetricsOptions myOpt)
 {
+  verbosity = myOpt.returnVerbosity();
+  gmts[0].setVerbose(verbosity);
+  gmts[1].setVerbose(verbosity);
+
   // check for environment variables
   if(const char* env_gm_kl_mode = std::getenv("GM_KL_MODE")){
     gm_kl_mode = std::stoi(env_gm_kl_mode);
-    if(verbosity > -1){
+    if(verbosity > 0){
       std::cout << "env var GM_KL_MODE: " <<gm_kl_mode<< '\n';
     }
   }
 
-  verbosity = myOpt.returnVerbosity();
   if(gmts[0].init(myOpt.returnFileName(0).c_str()) < 1){
     if(verbosity > 0){
       std::cerr<<"Unable to open input file ("<<myOpt.returnFileName(0)<<")"<<std::endl;
@@ -1644,6 +1647,9 @@ int GanitaMetrics::processOuterDiv_2(uint64_t fr_num, int tset)
   for(kk=0; kk<gmts[tset].returnNumTracks(); kk++){
     refTrack = gmts[tset].returnTrack(kk);
     iref = refTrack->returnFrameIndex(fr_num);
+    if(verbosity > 1){
+      std::cout<<"Frame ("<<fr_num<<") Matching frame index ("<<iref<<")"<<std::endl;
+    }
     if(iref >= 0){
       if(verbosity > 1){
 	cout<<kk<<":";
@@ -1685,7 +1691,7 @@ int GanitaMetrics::processOuterDiv_3(int tset)
 
   min_frame = gmts[tset].returnStart();
   max_frame = gmts[tset].returnEnd();
-  for(ii=min_frame; ii<max_frame; ii++){
+  for(ii=min_frame; ii<=max_frame; ii++){
     processOuterDiv_2(ii, tset);
   }
 
@@ -1705,15 +1711,15 @@ int GanitaMetrics::processOuterDiv_3(int tset)
       alpha = 0; densityKL = 0;
     }
     // Process outer divergence score formula.
-    //     score = log2( ((double) 1 + gmts[1-tset].returnNumTracks()) 
-    // 		  / ((double) 1 + alpha * gmts[1-tset].returnNumTracks()) );
+    score = log2( (2.0 + gmts[1-tset].returnNumTracks()) 
+    		  / (1.0 + alpha * (1 + gmts[1-tset].returnNumTracks())) );
     // Modified formula to use the number of tracks for tset rather than (1 - tset). 
-    score = log2( ((double) 1 + gmts[tset].returnNumTracks()) 
-		 / ((double) 1 + alpha * gmts[tset].returnNumTracks()) );
+//     score = log2( ((double) 1 + gmts[tset].returnNumTracks()) 
+// 		 / ((double) 1 + alpha * gmts[tset].returnNumTracks()) );
     if(verbosity > 0){
       cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
     }
-    tscore1 += score / gmts[tset].returnNumTracks();
+    tscore1 += score / (1 + gmts[1-tset].returnNumTracks());
     tscore2 += (1 - alpha) / gmts[tset].returnNumTracks();
     tscore3 += densityKL / gmts[tset].returnNumTracks();
   }
@@ -1803,6 +1809,13 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
     }
   }
   refTrack->stats[1] += no_overlap;
+  if(verbosity > 1){
+    std::cout<<"No overlap ("<<((double) no_overlap) / ((double) rMat1.returnNCols() * rMat1.returnNRows())
+	     <<")"<<std::endl;
+    std::cout<<"Total no overlap ("
+	     <<((double) refTrack->stats[1]) / ((double) refTrack->stats[1])
+	     <<")"<<std::endl;
+  }
   //refTrack->stats[2] += (kL / (rMat1.returnNCols() * rMat1.returnNRows()));
   refTrack->stats[2] += kL;
   //cout<<"Added kL:"<<tr_num<<":"<<kL<<endl;
