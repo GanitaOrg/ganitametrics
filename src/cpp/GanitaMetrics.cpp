@@ -1372,8 +1372,9 @@ int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, int ref_or_
     }
   }
   if((vol2 > 0) && (num1 > 0)){
-    kule = (pnf * vol1) / (num1 * vol2);
-  }
+    //kule = (pnf * vol1) / (num1 * vol2);
+    kule = vol1 / vol2;
+ }
   else kule = 0;
 
   score = computeInnerDivCore(kule);

@@ -114,7 +114,7 @@ int GanitaMetricsOptions::outputOptions(char* argv[])
   std::cout<<"----------------------------------------------------------"<<std::endl;
   std::cout<<"| Usage: "<<argv[0]<<" [options] -i file1 [-i file2]        |"<<std::endl;
   std::cout<<"| Version: "<<version.returnVersion()
-	   <<"                                           |"<<std::endl;
+	   <<"                                         |"<<std::endl;
   std::cout<<"| Options:                                               |"<<std::endl;
   std::cout<<"| -h,--help                                              |"<<std::endl;
   std::cout<<"| -v,--verbose               0-9                         |"<<std::endl;
