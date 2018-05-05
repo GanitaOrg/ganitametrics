@@ -105,6 +105,28 @@ double GanitaMetricsTopDetection::returnHeight(void)
   return(bodyBottom - bodyTop);
 }
 
+double GanitaMetricsTopDetection::returnBodyRight(void)
+{
+  return(bodyRight);
+}
+
+double GanitaMetricsTopDetection::returnBodyBottom(void)
+{
+  return(bodyBottom);
+}
+
+double GanitaMetricsTopDetection::setBodyRight(double br)
+{
+  bodyRight = br;
+  return(bodyRight - bodyLeft);
+}
+
+double GanitaMetricsTopDetection::setBodyBottom(double bb)
+{
+  bodyBottom = bb;
+  return(bodyBottom - bodyTop);
+}
+
 double GanitaMetricsTopDetection::returnConfidence(void)
 {
   return(confidence);
@@ -131,5 +153,27 @@ double GanitaMetricsTopDetection::pushAux(double val)
   aux.push_back(val);
 
   return(val);
+}
+
+double GanitaMetricsTopDetection::setMajorWidth(double ww)
+{
+  major_width = ww;
+  return(major_width);
+}
+
+double GanitaMetricsTopDetection::setMajorHeight(double hh)
+{
+  major_height = hh;
+  return(major_height);
+}
+
+double GanitaMetricsTopDetection::returnMajorWidth(void)
+{;
+  return(major_width);
+}
+
+double GanitaMetricsTopDetection::returnMajorHeight(void)
+{
+  return(major_height);
 }
 

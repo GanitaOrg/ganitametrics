@@ -12,6 +12,26 @@ GanitaMetricsTrack::GanitaMetricsTrack(void)
   verbosity = 0;
 }
 
+GanitaMetricsTrack::GanitaMetricsTrack(int vv)
+{
+  track_id = 0;
+  track_start = 0;
+  track_end = 0;
+  confidence = 0;
+  verbosity = vv;
+}
+
+GanitaMetricsTrack::GanitaMetricsTrack(double ww, double hh, int vv)
+{
+  track_id = 0;
+  track_start = 0;
+  track_end = 0;
+  confidence = 0;
+  verbosity = vv;
+  major_width = ww;
+  major_height = hh;
+}
+
 int64_t GanitaMetricsTrack::addTopDetection(void)
 {
   GanitaMetricsTopDetection *newdetection = new GanitaMetricsTopDetection();
@@ -48,12 +68,38 @@ int64_t GanitaMetricsTrack::addTopDetection(int64_t new_id,
 int GanitaMetricsTrack::returnTopGMD(uint64_t nn, GanitaMetricsTopDetection& gmd)
 {
   if(nn >= gtdetections.size()){
+    if(verbosity > 1){
+      std::cout<<"Error: "<<nn<<","<<gtdetections.size()<<std::endl;
+    }
     return(-1);
   }
   gmd = *gtdetections[nn];
 
   return(gtdetections.size());
 }
+
+int GanitaMetricsTrack::setTopGMD(uint64_t nn, GanitaMetricsTopDetection gmd)
+{
+  if(nn >= gtdetections.size()){
+    // Index too large
+    return(-1);
+  }
+  gtdetections[nn]->setValues(gmd.returnId(),
+			     gmd.returnFrameNumber(),
+			     0,
+			     1,
+			     0,
+			     0,
+			     0,
+			     0,
+			     gmd.returnX_Anchor(),
+			     gmd.returnY_Anchor(),
+			     gmd.returnBodyRight(),
+			     gmd.returnBodyBottom(),
+			     1,verbosity);
+
+  return(1);
+} 
 
 int64_t GanitaMetricsTrack::addMotDetection(void)
 {
@@ -232,21 +278,21 @@ int64_t GanitaMetricsTrack::returnFrameIndex(int64_t fr_num)
 
   if(returnNumberOfTopDetections() <= 0) return(-1);
   if((returnStart() > fr_num) || (returnEnd() < fr_num)){
-    if(verbosity > 1){
+    if(verbosity > 7){
       std::cout<<"(Frame,start,end) ("<<fr_num<<","<<returnStart()<<","<<returnEnd()<<")"
 	       <<std::endl;
     }
     return(-1);
   }
   else{
-    jj = 0; ii = -1;
+    jj = -1; ii = -1;
     while(ii < fr_num){
+      jj++;
       returnTopGMD(jj, gmd);
       ii = gmd.returnFrameNumber();
-      jj++;
     }
     if(ii != fr_num){
-      if(verbosity > 1){
+      if(verbosity > 7){
 	std::cout<<"(Frame,increment,index) ("<<fr_num<<","<<ii<<","<<jj<<")"<<std::endl;
       }
       return(-1);

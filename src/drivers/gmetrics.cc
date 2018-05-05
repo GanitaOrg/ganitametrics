@@ -25,19 +25,24 @@ int main(int argc, char *argv[])
   }
 
   if(gmoptions.returnCompareFlag() > 0){
+    gmetrics.setMajorWidth(gmoptions.returnResX());
+    gmetrics.setMajorHeight(gmoptions.returnResY());
     gmetrics.readTop(0);
     gmetrics.readTop(1);
-    
-    if(gmoptions.returnResFlag() < 2){
-      gmetrics.setMajorWidth(gmoptions.returnResX());
-      gmetrics.setMajorHeight(gmoptions.returnResY());
-    }
-    else{
-      gmetrics.setMajorResolution();
-      std::cout<<"Setting resolution ("<<gmetrics.returnMajorWidth()<<","
-	  <<gmetrics.returnMajorHeight()<<")"<<std::endl;
-    }
+  }
 
+  if(gmoptions.returnResFlag() >= 2){
+    // compute the max resolution from detection boxes
+    gmetrics.setMajorResolution();
+    std::cout<<"Setting resolution ("<<gmetrics.returnMajorWidth()<<","
+	     <<gmetrics.returnMajorHeight()<<")"<<std::endl;
+  }
+  else{
+    // clip the width and height of each detection box
+    gmetrics.clipDetectionBoxes();
+  }
+  
+  if(gmoptions.returnCompareFlag() > 0){
     gmetrics.computeMeanTrackKL(0, ttee);
     tide = ttee;
     gmetrics.gmScores.push_back(ttee);

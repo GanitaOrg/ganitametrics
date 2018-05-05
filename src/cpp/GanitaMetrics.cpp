@@ -818,12 +818,15 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
     sysTrack->returnTopGMD(jj, gmd2);
     ff2 = gmd2.returnFrameNumber();
     
-    if(verbosity > 2){
-      cout<<"Frame numbers "<<ff1<<" "<<ff2<<endl;
-      cout<<"Values: "<<gmd1.returnX_Anchor()<<":"<<gmd1.returnY_Anchor()<<":"
-	  <<gmd1.returnWidth()<<":"<<gmd1.returnHeight()<<":"<<endl;
-      cout<<"Values: "<<gmd2.returnX_Anchor()<<":"<<gmd2.returnY_Anchor()<<":"
-	  <<gmd2.returnWidth()<<":"<<gmd2.returnHeight()<<":"<<endl;
+    if(verbosity > 0){
+      if((gmd1.returnX_Anchor() + gmd1.returnWidth() > 1920) || 
+	 (gmd1.returnY_Anchor() + gmd1.returnHeight() > 1080)){
+	cout<<"Frame numbers "<<ff1<<" "<<ff2<<endl;
+	cout<<"Values: "<<gmd1.returnX_Anchor()<<":"<<gmd1.returnY_Anchor()<<":"
+	    <<gmd1.returnWidth()<<":"<<gmd1.returnHeight()<<":"<<endl;
+	cout<<"Values: "<<gmd2.returnX_Anchor()<<":"<<gmd2.returnY_Anchor()<<":"
+	    <<gmd2.returnWidth()<<":"<<gmd2.returnHeight()<<":"<<endl;
+      }
     }
 
     // Find the lower left point of overlap
@@ -1492,7 +1495,7 @@ int GanitaMetrics::purifyTrackPairKL_2
     }
     else{
       fr_overlap = (upper_y2 - lower_y1)*(right_x2 - left_x1);
-      if(verbosity > 1){
+      if(verbosity > 8){
 	cout<<"Overlap* ("<<left_x1<<","<<lower_y1<<") "<<"("<<right_x2<<","<<upper_y2<<")"<<endl;
       }
 //       gmd1.setAuxValid();
@@ -1607,6 +1610,12 @@ int GanitaMetrics::processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, GanitaMet
     for(kk=0; kk<gmts[set2].returnNumTracks(); kk++){
       sysTrack = gmts[set2].returnTrack(kk);
       isys = sysTrack->returnFrameIndex(fr_num);
+      if(verbosity > 1){
+	if((fr_num==5) && (iref == 6)){
+	  std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
+		   <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
+	}
+      }
       if(isys >= 0){
 	// Both refTrack and sysTrack have boxes on this frame
 	sysTrack->returnTopGMD(isys, gmd2);
@@ -1614,11 +1623,27 @@ int GanitaMetrics::processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, GanitaMet
 	sys_y1 = gmd2.returnY_Anchor();
 	sys_x2 = sys_x1 + gmd2.returnWidth();
 	sys_y2 = sys_y1 + gmd2.returnHeight();
+      if(verbosity > 1){
+	if((fr_num==5) && (iref == 6)){
+	  std::cout<<"(ref x1,ref x2, ref y1, ref y2)=("<<ref_x1<<","<<ref_x2<<","
+		   <<ref_y1<<","<<ref_y2<<")"<<std::endl;
+	  std::cout<<"(sys x1, sys x2, sys y1, sys y2)=("<<sys_x1<<","<<sys_x2<<","
+		   <<sys_y1<<","<<sys_y2<<")"<<std::endl;
+	  std::cout<<"(fr_id, fr_num, sys x1, sys y1)=("<<gmd2.returnId()<<","<<gmd2.returnFrameNumber()
+		   <<","<<gmd2.returnX_Anchor()<<","<<gmd2.returnY_Anchor()<<")"<<std::endl;
+	}
+      }
 	// Find any overlap between refTrack and sysTrack	    
 	if((sys_x1 < ref_x2) && (sys_x2 > ref_x1) && 
 	   (sys_y1 < ref_y2) && (sys_y2 > ref_y1)){
 	  // there is an overlap
-	  for(uu=0; uu<ww; uu++){
+	  if(verbosity > 1){
+	    //if(iref == 8){
+	      std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
+		       <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
+	      //}
+	  }
+ 	  for(uu=0; uu<ww; uu++){
 	    for(vv=0; vv<hh; vv++){
 	      if((ref_x1 + uu >= sys_x1) && (ref_x1 + uu < sys_x2) && 
 		 (ref_y1 + vv >= sys_y1) && (ref_y1 + vv < sys_y2)){
@@ -1893,17 +1918,13 @@ int GanitaMetrics::testSummary(void)
 
 uint64_t GanitaMetrics::setMajorResolution()
 {
-
-  if((gmts[0].returnFrameWidth() == 0) || (gmts[1].returnFrameWidth() == 0) || 
-     (gmts[0].returnFrameHeight() == 0) || (gmts[1].returnFrameHeight() == 0)){
-    // try computing resolution
-    gmts[0].computeResolution();
-    gmts[1].computeResolution();
-  }
-
+  // try computing resolution
+  gmts[0].computeResolution();
+  gmts[1].computeResolution();
+  
   if((gmts[0].returnFrameWidth() == 0) ||(gmts[1].returnFrameWidth() == 0) || 
      (gmts[0].returnFrameHeight() == 0) ||(gmts[1].returnFrameHeight() == 0)){
-    // try computing resolution
+    // something went wrong
     return(0);
   }
 
@@ -1924,6 +1945,16 @@ uint64_t GanitaMetrics::setMajorResolution()
   return(major_height);
 }
 
+int GanitaMetrics::clipDetectionBoxes(void)
+{
+  // fixed resolution is stored internally for truth and system track sets
+  // now clip the width and height of each detection box
+  gmts[0].clipDetectionBoxes();
+  gmts[1].clipDetectionBoxes();
+  
+  return(1);
+}
+
 uint64_t GanitaMetrics::returnMajorWidth()
 {
   return(major_width);
@@ -1937,12 +1968,16 @@ uint64_t GanitaMetrics::returnMajorHeight()
 uint64_t GanitaMetrics::setMajorWidth(uint64_t ww)
 {
   major_width = ww;
+  gmts[0].setFrameWidth(major_width);
+  gmts[1].setFrameWidth(major_width);
   return(major_width);
 }
 
 uint64_t GanitaMetrics::setMajorHeight(uint64_t hh)
 {
   major_height = hh;
+  gmts[0].setFrameHeight(major_height);
+  gmts[1].setFrameHeight(major_height);
   return(major_height);
 }
 

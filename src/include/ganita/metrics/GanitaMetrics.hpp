@@ -81,6 +81,7 @@ public:
   int printSummary(void);
   int testSummary(void);
   uint64_t setMajorResolution();
+  int clipDetectionBoxes(void);
   uint64_t returnMajorWidth();
   uint64_t returnMajorHeight();
   uint64_t setMajorWidth(uint64_t ww);

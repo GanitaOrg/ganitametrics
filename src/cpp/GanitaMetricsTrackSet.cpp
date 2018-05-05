@@ -165,7 +165,6 @@ int GanitaMetricsTrackSet::readTop(void)
   
   string line("");
   while(gmb->getLine(line) >= 0){
-    //cout<<line;
     num1 = sscanf(line.c_str(), "%ld, %ld, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", 
 	   &new_id, &new_frame_number, &new_headValid, &new_bodyValid, 
 	   &new_headLeft, &new_headTop, &new_headRight, &new_headBottom,
@@ -177,7 +176,7 @@ int GanitaMetricsTrackSet::readTop(void)
 
     if(tru_ids[new_id] == 0){
       // create a new track
-      addTrack();
+      addTrack(frame_width, frame_height);
       tru_ids[new_id] = 1;
       rev_ids[new_id] = total_tracks;
       gmTracks[rev_ids[new_id]]->setStart(new_frame_number);
@@ -185,14 +184,26 @@ int GanitaMetricsTrackSet::readTop(void)
       total_tracks++;
     }
 
+    // Clipping - comment out - this will override -c option
+//     if(new_bodyRight > frame_width){
+//       new_bodyRight = frame_width;
+//     }
+//     if(new_bodyBottom > frame_height){
+//       new_bodyBottom = frame_height;
+//     }
+
     num = gmTracks[rev_ids[new_id]]->addTopDetection
       (new_id, new_frame_number, new_headValid, new_bodyValid, 
        new_headLeft, new_headTop, new_headRight, new_headBottom,
        new_bodyLeft, new_bodyTop, new_bodyRight, new_bodyBottom, 
        new_confidence, new_verbosity);
     gmTracks[rev_ids[new_id]]->returnTopGMD(num - 1, gmd);
-    if(verbosity > 0){
+    if(verbosity > 1){
       cout<<"Number of detections = "<<num<<" Frame # = "<<gmd.returnFrameNumber()<<endl;
+      std::cout<<line;
+      std::cout<<new_id<<","<<new_frame_number<<","<<new_bodyLeft
+	       <<","<<new_bodyTop<<","<<new_bodyRight<<","<<new_bodyBottom<<std::endl;
+
     }
     line = "";
   }
@@ -209,7 +220,7 @@ int GanitaMetricsTrackSet::readTop(void)
   setEndFrames();
   // Compute the min and max frames of entire Track Set.
   computeEndPoints();
-  computeResolution();
+  //computeResolution();
 
   return(1);
 }
@@ -217,6 +228,14 @@ int GanitaMetricsTrackSet::readTop(void)
 int64_t GanitaMetricsTrackSet::addTrack(void)
 {
   GanitaMetricsTrack *newtrack = new GanitaMetricsTrack();
+  gmTracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
+  delete newtrack;
+  return(gmTracks.size());
+}
+
+int64_t GanitaMetricsTrackSet::addTrack(double ww, double hh)
+{
+  GanitaMetricsTrack *newtrack = new GanitaMetricsTrack(ww, hh, verbosity);
   gmTracks.push_back(std::make_shared<GanitaMetricsTrack>(*newtrack));
   delete newtrack;
   return(gmTracks.size());
@@ -424,6 +443,18 @@ int GanitaMetricsTrackSet::computeResolution(void)
   return(1);
 }
 
+uint64_t GanitaMetricsTrackSet::setFrameWidth(uint64_t ww)
+{
+  frame_width = ww;
+  return(frame_width);
+}
+
+uint64_t GanitaMetricsTrackSet::setFrameHeight(uint64_t hh)
+{
+  frame_height = hh;
+  return(frame_height);
+}
+
 uint64_t GanitaMetricsTrackSet::returnFrameWidth()
 {
   return(frame_width);
@@ -432,5 +463,46 @@ uint64_t GanitaMetricsTrackSet::returnFrameWidth()
 uint64_t GanitaMetricsTrackSet::returnFrameHeight()
 {
   return(frame_height);
+}
+
+int GanitaMetricsTrackSet::clipDetectionBoxes(void)
+{
+  uint64_t ii, jj, num;
+  std::shared_ptr<GanitaMetricsTrack> refTrack;
+  GanitaMetricsTopDetection gmd;
+
+  if(verbosity > 0){
+    std::cout<<"Clipping detection boxes"<<std::endl;
+  }
+  if((frame_width <= 0) ||(frame_height <= 0)){
+    // if it is not set, then return error
+    return(-1);
+  }
+  
+  for(ii=0; ii<gmTracks.size(); ii++){
+    refTrack = gmTracks[ii];
+    num = refTrack->returnNumberOfTopDetections();
+    for(jj=0; jj < num; jj++){
+      refTrack->returnTopGMD(jj, gmd);
+      if(gmd.returnBodyRight() > frame_width){
+	gmd.setBodyRight(frame_width);
+	if(verbosity > 1){
+	  cout<<"Set new width ("<<gmd.returnWidth()<<") x("<<gmd.returnX_Anchor()<<") w("
+	      <<gmd.returnWidth()<<") t("<<ii<<") f("<<jj<<")"<<endl;
+	}
+      }
+      if(gmd.returnBodyBottom() > frame_height){
+	gmd.setBodyBottom(frame_height);
+	if(verbosity > 1){
+	  cout<<"Set new height ("<<gmd.returnHeight()<<") x("<<gmd.returnX_Anchor()
+	      <<") y("<<gmd.returnY_Anchor()<<") h("
+	      <<gmd.returnHeight()<<") t("<<ii<<") f("<<jj<<")"<<endl;
+	}
+      }
+      refTrack->setTopGMD(jj, gmd);
+    }
+  }
+
+  return(1);
 }
 

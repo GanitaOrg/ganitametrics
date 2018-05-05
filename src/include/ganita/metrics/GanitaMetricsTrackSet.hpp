@@ -48,6 +48,7 @@ public:
   int readTopAsOne(void);
   int readTop(void);
   int64_t addTrack(void);
+  int64_t addTrack(double ww, double hh);
   int visTracks(string myvideoname);
   std::shared_ptr<GanitaMetricsTrack> returnTrack(uint64_t tt);
   int64_t setEndFrames(void);
@@ -56,8 +57,11 @@ public:
   uint64_t returnNumTracks(void);
   int computeEndPoints(void);
   int computeResolution(void);
+  uint64_t setFrameWidth(uint64_t ww);
+  uint64_t setFrameHeight(uint64_t hh);
   uint64_t returnFrameWidth();
   uint64_t returnFrameHeight();
+  int clipDetectionBoxes(void);
 };
 
 #endif

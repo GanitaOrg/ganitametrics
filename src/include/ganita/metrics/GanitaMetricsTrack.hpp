@@ -25,10 +25,12 @@ private:
   int verbosity;
   std::vector< std::shared_ptr<GanitaMetricsMotDetection> > gmdetections;
   std::vector< std::shared_ptr<GanitaMetricsTopDetection> > gtdetections;
-
+  double major_width;
+  double major_height;
 public:
   GanitaMetricsTrack(void);
   GanitaMetricsTrack(int vv);                   // set verbosity=vv
+  GanitaMetricsTrack(double ww, double hh, int vv);
   int64_t addTopDetection(void);
   int64_t addTopDetection(int64_t new_id,
 			  int64_t new_frame_number,
@@ -45,6 +47,7 @@ public:
 			  double new_confidence,
 			  int new_verbosity);
   int returnTopGMD(uint64_t nn, GanitaMetricsTopDetection& gmd);
+  int setTopGMD(uint64_t nn, GanitaMetricsTopDetection gmd);
   int64_t addMotDetection(void);
   int64_t addMotDetection(int64_t new_frame_number,
 		       int64_t new_id,

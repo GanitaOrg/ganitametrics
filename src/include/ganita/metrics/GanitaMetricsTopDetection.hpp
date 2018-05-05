@@ -28,6 +28,8 @@ private:
   std::vector<double> aux;
   int auxValid;
   int verbosity;
+  double major_width;
+  double major_height;
 public:
   GanitaMetricsTopDetection(void);
   GanitaMetricsTopDetection(int vv);                   // set verbosity=vv
@@ -51,11 +53,19 @@ public:
   double returnY_Anchor(void);
   double returnWidth(void);
   double returnHeight(void);
+  double returnBodyRight(void);
+  double returnBodyBottom(void);
+  double setBodyRight(double br);
+  double setBodyBottom(double bb);
   double returnConfidence(void);
   int returnAuxValid(void);
   int setAuxValid(void);
   double returnAux(int ii);
   double pushAux(double val);
+  double setMajorWidth(double ww);
+  double setMajorHeight(double hh);
+  double returnMajorWidth(void);
+  double returnMajorHeight(void);
 };
 
 #endif
