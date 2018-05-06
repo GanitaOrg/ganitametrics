@@ -749,7 +749,7 @@ int GanitaMetrics::computeTrackPairKL_aux(int64_t ref_nn, int64_t sys_nn)
   }
   computeKL_DensityDistance(final_frame,ref_nn,sys_nn);
  
-  return(1);	  
+  return(1);
 }
 
 int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, double& score)
@@ -819,14 +819,11 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
     ff2 = gmd2.returnFrameNumber();
     
     if(verbosity > 0){
-      if((gmd1.returnX_Anchor() + gmd1.returnWidth() > 1920) || 
-	 (gmd1.returnY_Anchor() + gmd1.returnHeight() > 1080)){
 	cout<<"Frame numbers "<<ff1<<" "<<ff2<<endl;
 	cout<<"Values: "<<gmd1.returnX_Anchor()<<":"<<gmd1.returnY_Anchor()<<":"
 	    <<gmd1.returnWidth()<<":"<<gmd1.returnHeight()<<":"<<endl;
 	cout<<"Values: "<<gmd2.returnX_Anchor()<<":"<<gmd2.returnY_Anchor()<<":"
 	    <<gmd2.returnWidth()<<":"<<gmd2.returnHeight()<<":"<<endl;
-      }
     }
 
     // Find the lower left point of overlap
@@ -863,6 +860,9 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
     if((left_x1 >= right_x2) || (lower_y1 >= upper_y2)){
       // There is no overlap
       fr_overlap = 0;
+      if(verbosity > 1){
+	cout<<"No Overlap"<<endl;
+      }
     }
     else{
       fr_overlap = (upper_y2 - lower_y1)*(right_x2 - left_x1);
@@ -882,7 +882,9 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
       vol2 += ((double) (gmd1.returnWidth() * gmd1.returnHeight())) / 10000.0;
       //kule += ((double) fr_overlap) / (gmd1.returnWidth() * gmd1.returnHeight());
     }
-    //cout<<"Overlap "<<fr_overlap<<endl;
+    if(verbosity > 1){
+      cout<<"Overlap "<<fr_overlap<<endl;
+    }
 
     ff++;
 
@@ -910,8 +912,8 @@ int GanitaMetrics::computeTrackPairKL(int64_t ref_nn, int64_t sys_nn, int flip, 
     }
   }
   if((vol2 > 0) && (num1 > 0)){
-    //kule = (pnf * vol1) / (num1 * vol2);
-    kule = vol1 / vol2;
+    kule = (pnf * vol1) / (num1 * vol2);
+    //kule = vol1 / vol2;
   }
   else kule = 0;
 
@@ -1164,6 +1166,9 @@ int GanitaMetrics::computeTrackKL(int64_t ref_nn, double iKL, int flip, double& 
   num = gmts[1-flip].returnNumTracks();
   for(ii=0; ii<num; ii++){
     computeTrackPairKL(ref_nn, ii, flip, score);
+    if(verbosity > 1){
+      std::cout<<"Pair KL "<<ref_nn<<","<<ii<<","<<score<<std::endl;
+    }
     scoreKL += score;
   }
 
@@ -1375,8 +1380,8 @@ int GanitaMetrics::purifyTrackPairKL(int64_t ref_nn, int64_t sys_nn, int ref_or_
     }
   }
   if((vol2 > 0) && (num1 > 0)){
-    //kule = (pnf * vol1) / (num1 * vol2);
-    kule = vol1 / vol2;
+    kule = (pnf * vol1) / (num1 * vol2);
+    //kule = vol1 / vol2;
  }
   else kule = 0;
 
@@ -1743,6 +1748,8 @@ int GanitaMetrics::processOuterDiv_3(int tset)
 //     score = log2( ((double) 1 + gmts[tset].returnNumTracks()) 
 // 		 / ((double) 1 + alpha * gmts[tset].returnNumTracks()) );
     if(verbosity > 0){
+      cout<<"log2((2+"<<gmts[1-tset].returnNumTracks()<<") / (1+"<<alpha<<"*"
+	  <<1 + gmts[1-tset].returnNumTracks()<<"))"<<endl;
       cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
     }
     tscore1 += score / (1 + gmts[1-tset].returnNumTracks());
@@ -1856,6 +1863,11 @@ int GanitaMetrics::printSummary(void)
   gmScoreType.push_back("Total KL-track error           ");
   fprintf(stdout, "***************************************************\n");
   fprintf(stdout, "*                    Summary                      *\n");
+  fprintf(stdout, "***************************************************\n");
+  fprintf(stdout, "* Reference # of Tracks %5ld                     *\n", 
+	  gmts[0].returnNumTracks());
+  fprintf(stdout, "* System    # of Tracks %5ld                     *\n", 
+	  gmts[1].returnNumTracks());
   fprintf(stdout, "***************************************************\n");
   fprintf(stdout, "* %s \t %lf *\n", gmScoreType[0].c_str(), gmScores[0]);
   fprintf(stdout, "* %s \t %lf *\n", gmScoreType[1].c_str(), gmScores[1]);

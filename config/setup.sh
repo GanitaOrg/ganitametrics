@@ -1,6 +1,5 @@
 #!/bin/bash
 # This bash script can be used to set environment variables used by ganitametrics.
-# These variables may only be used by the visualization option (at this time).
 # Default values are assigned in ganita metrics, so this may not be needed.
 # Otherwise, change to appropriate values and type:
 # source setup.sh

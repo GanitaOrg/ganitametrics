@@ -15,21 +15,22 @@ Executables: gmetrics
 
 Library: libGanitaMetrics.so
 
-----------------------------------------------------------
-| Usage: ./gmetrics [options] -i file1 [-i file2]        |
-| Version: 0.3                                           |
-| Options:                                               |
-| -h,--help                                              |
-| -v,--verbose               0-9                         |
-| -r,--resolution            wxh                         |
-| -c,--compute-resolution                                |
-| -s,--visualize             video-file                  |
-| -i,--input-file            file1                       |
-----------------------------------------------------------
-| file1 should be in the csv top format.                 |
-| video-file should be in a format consumable by ffmpeg. |
-| Default resolution is 1920x1080.                       |
-----------------------------------------------------------
+------------------------------------------------------------
+| Usage: ./gmetrics [options] -i file1 [-i sys_file]       |
+| Version: 0.10.0                                          |
+| Options:                                                 |
+| -h,--help                                                |
+| -v,--verbose               0-9                           |
+| -r,--resolution            wxh                           |
+| -c,--compute-resolution                                  |
+| -s,--visualize             video-file                    |
+| -i,--input-file            file1                         |
+------------------------------------------------------------
+| When scoring system output, file1 must be the reference. |
+| For the visualization, video-file must be in a format    |
+| consumable by ffmpeg.                                    |
+| Default resolution is 1920x1080.                         |
+------------------------------------------------------------
 
 If gmetrics is run with the -s flag, then it will look 
 for the annotation file following -i and build a script 
@@ -56,26 +57,33 @@ source setup.sh
 
 gmetrics outputs an error summary to stdout. 
 Sample command-line and output:
-time ./gmetrics -i ../data/duke_tracker_output/TownCentre/TownCentre-groundtruth.top -i ../data/duke_tracker_output/TownCentre/TownCentre-output-BenfoldReidCVPR2011.top -r 1920x1080 -s /home/data/duke_tracker_output/TownCentre/TownCentreXVID.avi
-File ../data/duke_tracker_output/TownCentre/TownCentre-groundtruth.top size = 5553300
-File ../data/duke_tracker_output/TownCentre/TownCentre-output-BenfoldReidCVPR2011.top size = 5728155
+time ./gmetrics -i /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentre-groundtruth.top -i /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentre-output-BenfoldReidBMVC2009.top -r 1920x1080
+File /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentre-groundtruth.top size = 5553300
+File /home/terry/projects/src/ganita/ganitametrics/data/duke_tracker_output/TownCentre/TownCentre-output-BenfoldReidBMVC2009.top size = 4390814
 ***************************************************
 *                    Summary                      *
 ***************************************************
-* Inner div relative to reference 	 0.757959 *
-* Inner div relative to system    	 0.192347 *
-* Total inner div error           	+0.950307 *
-* Missed detection error          	+1.038188 *
-* Missed detection proportion     	 0.322062 *
-* Density error rel to reference  	+0.103510 *
-* False alarm error               	+0.764577 *
-* False alarm proportion          	 0.252416 *
-* Density error rel to system     	+0.091421 *
+* Reference # of Tracks   230                     *
+* System    # of Tracks   244                     *
+***************************************************
+* Inner div relative to reference 	 0.285220 *
+* Inner div relative to system    	 0.444053 *
+* Total inner div error           	+0.729273 *
+* Missed detection error          	+1.275770 *
+* Missed detection proportion     	 0.426925 *
+* Density error rel to reference  	+0.033175 *
+* False alarm error               	+0.327670 *
+* False alarm proportion          	 0.176251 *
+* Density error rel to system     	+0.142520 *
 *-------------------------------------------------*
-* Total KL-track error            	=2.948003 *
+* Total KL-track error            	=2.508408 *
 ***************************************************
 
-real	1m21.236s
-user	1m21.001s
-sys	0m0.132s
+real	1m6.142s
+user	1m2.240s
+sys	0m3.883s
+
+
+Originally, reads annotation files in the "top" format.  This is a csv files in the following format:
+TrackId,FrameNumber,HeadValid,BodyValid,HeadLeft,HeadTop,HeadRight,HeadBottom,BodyLeft,BodyTop,BodyRight,BodyBottom
 

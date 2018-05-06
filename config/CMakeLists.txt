@@ -7,8 +7,8 @@ project(GanitaMetrics CXX C)
 
 ## Version
 set(GanitaMetrics_VERSION_MAJOR "0")
-set(GanitaMetrics_VERSION_MINOR "9")
-set(GanitaMetrics_VERSION_PATCH "2")
+set(GanitaMetrics_VERSION_MINOR "10")
+set(GanitaMetrics_VERSION_PATCH "0")
 
 cmake_minimum_required(VERSION 2.8)
 

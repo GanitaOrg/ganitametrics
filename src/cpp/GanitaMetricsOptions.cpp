@@ -110,23 +110,30 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
 int GanitaMetricsOptions::outputOptions(char* argv[])
 {
   GanitaMetricsVersion version;
+  uint64_t ii;
+  std::string progname;
+  progname = std::string(argv[0]);
 
-  std::cout<<"----------------------------------------------------------"<<std::endl;
-  std::cout<<"| Usage: "<<argv[0]<<" [options] -i file1 [-i file2]        |"<<std::endl;
-  std::cout<<"| Version: "<<version.returnVersion()
-	   <<"                                         |"<<std::endl;
-  std::cout<<"| Options:                                               |"<<std::endl;
-  std::cout<<"| -h,--help                                              |"<<std::endl;
-  std::cout<<"| -v,--verbose               0-9                         |"<<std::endl;
-  std::cout<<"| -r,--resolution            wxh                         |"<<std::endl;
-  std::cout<<"| -c,--compute-resolution                                |"<<std::endl;
-  std::cout<<"| -s,--visualize             video-file                  |"<<std::endl;
-  std::cout<<"| -i,--input-file            file1                       |"<<std::endl;
-  std::cout<<"----------------------------------------------------------"<<std::endl;
-  std::cout<<"| file1 should be in the csv top format.                 |"<<std::endl;
-  std::cout<<"| video-file should be in a format consumable by ffmpeg. |"<<std::endl;
-  std::cout<<"| Default resolution is 1920x1080.                       |"<<std::endl;
-  std::cout<<"----------------------------------------------------------"<<std::endl;
+  std::cout<<"------------------------------------------------------------"<<std::endl;
+  std::cout<<"| Usage: "<<argv[0]<<" [options] -i file1 [-i sys_file]";
+  for(ii=0; ii<17-progname.size(); ii++){ std::cout<<" ";}
+  std::cout<<"|"<<std::endl;
+  std::cout<<"| Version: "<<version.returnVersion();
+  for(ii=0; ii<48-version.returnVersion().size(); ii++){ std::cout<<" ";}
+  std::cout<<"|"<<std::endl;
+  std::cout<<"| Options:                                                 |"<<std::endl;
+  std::cout<<"| -h,--help                                                |"<<std::endl;
+  std::cout<<"| -v,--verbose               0-9                           |"<<std::endl;
+  std::cout<<"| -r,--resolution            wxh                           |"<<std::endl;
+  std::cout<<"| -c,--compute-resolution                                  |"<<std::endl;
+  std::cout<<"| -s,--visualize             video-file                    |"<<std::endl;
+  std::cout<<"| -i,--input-file            file1                         |"<<std::endl;
+  std::cout<<"------------------------------------------------------------"<<std::endl;
+  std::cout<<"| When scoring system output, file1 must be the reference. |"<<std::endl;
+  std::cout<<"| For the visualization, video-file must be in a format    |"<<std::endl;
+  std::cout<<"| consumable by ffmpeg.                                    |"<<std::endl;
+  std::cout<<"| Default resolution is 1920x1080.                         |"<<std::endl;
+  std::cout<<"------------------------------------------------------------"<<std::endl;
 
   return(1);
 }
