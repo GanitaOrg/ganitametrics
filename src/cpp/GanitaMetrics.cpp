@@ -1812,8 +1812,8 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
 	  // this probably shouldn't happen
 	  // possibly we excluded the refTrack
 	  //kL += log2((double) rMat1.get(ii, jj));
-	  myratio = log2((double) rMat1.get(ii, jj));
-	  kL += myratio * log2(myratio);
+	  myratio = (double) rMat1.get(ii, jj);
+	  kL += log2(myratio) / myratio;
 	  if(verbosity > 2){
 	    cout<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
 	  }
@@ -1822,7 +1822,7 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
 	  if(rMat2.get(ii, jj) < rMat1.get(ii, jj)){
 	    //kL += log2(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
 	    myratio = ((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj));
-	    kL += myratio * log2(myratio);
+	    kL += log2(myratio) / myratio;
 	    if(verbosity > 2){
 	      if(kL > 0){
 		cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;

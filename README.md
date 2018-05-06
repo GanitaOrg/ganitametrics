@@ -34,7 +34,7 @@ Library: libGanitaMetrics.so
 
 If gmetrics is run with the -s flag, then it will look 
 for the annotation file following -i and build a script 
-that uses ffmpeg to overlay these annotation boxes 
+that uses ffmpeg to overlay the annotation boxes 
 onto the video file following -s. 
 Note, it assumes a frame rate of 24.97. 
 The default value should be changed to handle a different 
@@ -84,6 +84,6 @@ user	1m2.240s
 sys	0m3.883s
 
 
-Originally, reads annotation files in the "top" format.  This is a csv files in the following format:
+Originally, reads annotation files in the "top" format.  This is a csv file in the following format:
 TrackId,FrameNumber,HeadValid,BodyValid,HeadLeft,HeadTop,HeadRight,HeadBottom,BodyLeft,BodyTop,BodyRight,BodyBottom
 

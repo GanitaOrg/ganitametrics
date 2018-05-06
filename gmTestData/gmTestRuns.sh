@@ -3,10 +3,10 @@
 echo "Test1: Identical truth and system output. Error should be 0."
 ../build/gmetrics -i sample_test_truth_1.top -i sample_test_system_1.top
 echo ""
-echo "Test2: Tracks get switched after intersecting in the middle."
+echo "Test2: One track is correct. The other goes wrong half way through."
 ../build/gmetrics -i sample_test_truth_1.top -i sample_test_system_2.top
 echo ""
-echo "Test3: One track is correct. The other goes wrong way half way through."
+echo "Test3: Tracks get switched after intersecting in the middle."
 ../build/gmetrics -i sample_test_truth_1.top -i sample_test_system_3.top
 echo ""
 echo "Test4: Instead of 2 tracks, system splits into 4 tracks."
