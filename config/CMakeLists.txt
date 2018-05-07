@@ -9,6 +9,7 @@ project(GanitaMetrics CXX C)
 set(GanitaMetrics_VERSION_MAJOR "0")
 set(GanitaMetrics_VERSION_MINOR "11")
 set(GanitaMetrics_VERSION_PATCH "0")
+set(VERSION ${GanitaMetrics_VERSION_MAJOR}.${GanitaMetrics_VERSION_MINOR}.${GanitaMetrics_VERSION_PATCH})
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -83,6 +84,16 @@ install(TARGETS gmetrics DESTINATION bin)
 FILE(GLOB files "../src/include/ganita/metrics/*.hpp")
 install(FILES ${files} DESTINATION include/ganita/metrics)
 install(DIRECTORY DESTINATION include/ganita/metrics)
+
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_NAME "GanitaMetrics")
+set(CPACK_PACKAGE_RELEASE 1)
+set(CPACK_PACKAGE_CONTACT "T Adams")
+set(CPACK_PACKAGE_VENDOR "ganita.org")
+set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+include(CPack)
 
 # if(OpenMP_CXX_FLAGS)
 #   set_property(
