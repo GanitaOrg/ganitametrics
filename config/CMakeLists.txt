@@ -7,7 +7,7 @@ project(GanitaMetrics CXX C)
 
 ## Version
 set(GanitaMetrics_VERSION_MAJOR "0")
-set(GanitaMetrics_VERSION_MINOR "11")
+set(GanitaMetrics_VERSION_MINOR "12")
 set(GanitaMetrics_VERSION_PATCH "0")
 set(VERSION ${GanitaMetrics_VERSION_MAJOR}.${GanitaMetrics_VERSION_MINOR}.${GanitaMetrics_VERSION_PATCH})
 

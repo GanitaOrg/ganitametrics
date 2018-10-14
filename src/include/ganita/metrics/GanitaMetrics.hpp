@@ -76,6 +76,8 @@ public:
   int processOuterDiv_3(int tset);
   int updateStats(int tset, uint64_t tr_num, 
 		  GanitaMetricsMat rMat1, GanitaMetricsMat rMat2);
+  int updateStats2(int tset, uint64_t tr_num, 
+		  GanitaMetricsMat rMat1, GanitaMetricsMat rMat2);
   vector<double> gmScores;
   vector<string> gmScoreType;
   int printSummary(void);

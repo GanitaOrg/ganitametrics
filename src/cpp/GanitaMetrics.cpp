@@ -1691,7 +1691,7 @@ int GanitaMetrics::processOuterDiv_2(uint64_t fr_num, int tset)
       GanitaMetricsMat rMat2(ww, hh);
       processOuterDiv_1(fr_num, kk, rMat1, tset, 1 - tset);
       processOuterDiv_1(fr_num, kk, rMat2, tset, tset);
-      updateStats(tset, kk, rMat1, rMat2);
+      updateStats2(tset, kk, rMat1, rMat2);
       rMat1.close();
       rMat2.close();
 //       cout<<"Track("<<kk<<") "<<"Frame("<<fr_num<<") "<<"("<<refTrack->stats[0]<<") "
@@ -1823,6 +1823,82 @@ int GanitaMetrics::updateStats(int tset, uint64_t tr_num,
 	    //kL += log2(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
 	    myratio = ((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj));
 	    kL += log2(myratio) / myratio;
+	    if(verbosity > 2){
+	      if(kL > 0){
+		cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+	      }
+	    }
+	  }
+	  else{
+	    // Next lines may be commented out.
+	    // If not commented out, may lead to double counting errors.
+// 	    kL += log2(((double) rMat2.get(ii, jj)) / ((double) rMat1.get(ii, jj)));
+// 	    if(kL > 0){
+// 	      cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+// 	    }
+	  }
+	}
+      }
+    }
+  }
+  refTrack->stats[1] += no_overlap;
+  if(verbosity > 1){
+    std::cout<<"No overlap ("<<((double) no_overlap) / ((double) rMat1.returnNCols() * rMat1.returnNRows())
+	     <<")"<<std::endl;
+    std::cout<<"Total no overlap ("
+	     <<((double) refTrack->stats[1]) / ((double) refTrack->stats[1])
+	     <<")"<<std::endl;
+  }
+  //refTrack->stats[2] += (kL / (rMat1.returnNCols() * rMat1.returnNRows()));
+  refTrack->stats[2] += kL;
+  //cout<<"Added kL:"<<tr_num<<":"<<kL<<endl;
+
+  return(1);
+}
+
+int GanitaMetrics::updateStats2(int tset, uint64_t tr_num, 
+			       GanitaMetricsMat rMat1, GanitaMetricsMat rMat2)
+{
+  uint64_t ii, jj;
+  double no_overlap, kL;
+  std::shared_ptr< GanitaMetricsTrack > refTrack;
+  double myratio;
+
+  no_overlap = 0;
+  kL = 0;
+
+  refTrack = gmts[tset].returnTrack(tr_num);
+  if(refTrack->stats.size() <= 0){
+    // need to initialize stats first
+    return(-1);
+  }
+  if(rMat1.returnNCols() * rMat1.returnNRows() <= 0){ return(-1); }
+  refTrack->stats[0] += rMat1.returnNCols() * rMat1.returnNRows();
+  for(ii=0; ii<rMat1.returnNCols(); ii++){
+    for(jj=0; jj<rMat1.returnNRows(); jj++){
+      if(rMat1.get(ii, jj) == 0){
+	// no overlap
+	no_overlap++;
+      }
+      else{
+	// there is overlap
+	// compute KL-divergence difference between distributions
+	// then add this to the stats
+	if(rMat2.get(ii, jj) == 0){
+	  // this probably shouldn't happen
+	  // possibly we excluded the refTrack
+	  //kL += log2((double) rMat1.get(ii, jj));
+	  myratio = (double) rMat1.get(ii, jj);
+	  kL += log2(myratio) / myratio;
+	  if(verbosity > 2){
+	    cout<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
+	  }
+	}
+	else{
+	  if(rMat2.get(ii, jj) < rMat1.get(ii, jj)){
+	    //kL += log2(((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj)));
+	    myratio = ((double) rMat1.get(ii, jj)) / ((double) rMat2.get(ii, jj));
+	    kL += myratio * log2(myratio);
 	    if(verbosity > 2){
 	      if(kL > 0){
 		cout<<"kL:"<<tr_num<<":"<<ii<<":"<<jj<<":"<<kL<<endl;
