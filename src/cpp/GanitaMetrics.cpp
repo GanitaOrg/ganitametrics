@@ -9,6 +9,7 @@
 GanitaMetrics::GanitaMetrics(void)
 {
   verbosity = 0;
+  detailed_flag = 0;
   gm_colors.push_back("red");
   gm_colors.push_back("blue");
   gm_colors.push_back("yellow");
@@ -21,6 +22,7 @@ GanitaMetrics::GanitaMetrics(void)
 GanitaMetrics::GanitaMetrics(int vv)
 {
   verbosity = vv;
+  detailed_flag = 0;
   gm_colors.push_back("red");
   gm_colors.push_back("blue");
   gm_colors.push_back("yellow");
@@ -35,6 +37,7 @@ int GanitaMetrics::init(GanitaMetricsOptions myOpt)
   verbosity = myOpt.returnVerbosity();
   gmts[0].setVerbose(verbosity);
   gmts[1].setVerbose(verbosity);
+  detailed_flag = myOpt.returnDetailedFlag();
 
   // check for environment variables
   if(const char* env_gm_kl_mode = std::getenv("GM_KL_MODE")){
@@ -1161,22 +1164,37 @@ int GanitaMetrics::computeTrackKL(int64_t ref_nn, double iKL, int flip, double& 
 {
   uint64_t num, ii;
   double score;
+  std::shared_ptr< GanitaMetricsTrack > refTrack, sysTrack;
 
   scoreKL = 0;
+  refTrack = gmts[flip].returnTrack(ref_nn);
   num = gmts[1-flip].returnNumTracks();
+  if((detailed_flag > 0) || (verbosity > 1)){
+    refTrack = gmts[flip].returnTrack(ref_nn);
+    std::cout<<"Computing Inner Divergence for (Track Set, Track Id)=("
+	     <<flip<<","<<refTrack->returnId()<<")"<<std::endl;
+  }
   for(ii=0; ii<num; ii++){
     computeTrackPairKL(ref_nn, ii, flip, score);
-    if(verbosity > 1){
-      std::cout<<"Pair KL "<<ref_nn<<","<<ii<<","<<score<<std::endl;
+    if(((detailed_flag > 0) && (score > 0)) || (verbosity > 1)){
+      sysTrack = gmts[1-flip].returnTrack(ii);
+      std::cout<<"("<<sysTrack->returnId()<<","<<score<<") ";
     }
     scoreKL += score;
   }
 
   score = scoreKL;
-  if(scoreKL > iKL){
-    scoreKL -= iKL;
+  if(((detailed_flag > 0) && (score > 0)) || (verbosity > 1)){
+    std::cout<<std::endl
+	     <<"-----------------------------------------------------------------"<<std::endl;
+    //std::cout<<std::endl;
   }
-  else scoreKL = 0;
+
+  // purification of score comes after adding up inner divergences.
+  //   if(scoreKL > iKL){
+  //     scoreKL -= iKL;
+  //   }
+  //   else scoreKL = 0;
   if(verbosity > 0){
     cout<<"Raw KL-score ("<<score<<") Inner entropy ("<<iKL<<") Final KL-score ("
       <<scoreKL<<")"<<endl;
@@ -1567,9 +1585,10 @@ int GanitaMetrics::purifyTrackPairKL_2
 int GanitaMetrics::computeMeanTrackKL(int ref_or_sys, double& track_error)
 {
   double innerKL, scoreKL, totalKL;
+  double selfKL;
   int64_t num, ii;
   
-  totalKL = 0;
+  totalKL = 0; selfKL = 0;
   num = gmts[ref_or_sys].returnNumTracks();
   if(num <= 0) return(-1);
   for(ii=0; ii<num; ii++){
@@ -1577,10 +1596,16 @@ int GanitaMetrics::computeMeanTrackKL(int ref_or_sys, double& track_error)
       cout<<"Processing ref track ("<<ii<<")"<<endl;
     }
     purifyTrackKL(ii, ref_or_sys, innerKL);
+    selfKL += innerKL;
     //fprintf(stdout, "Computing KL-divergence score."); fflush(stdout);
     computeTrackKL(ii, innerKL, ref_or_sys, scoreKL);
     totalKL += scoreKL;
   }
+  // purification of score now happens here as described in paper.
+  if(totalKL > selfKL){
+    totalKL -= selfKL;
+  }
+  else totalKL = 0;
   totalKL /= num;
   //cout<<"Total tracking error ("<<totalKL<<")"<<endl;
   track_error = totalKL;
@@ -1615,12 +1640,6 @@ int GanitaMetrics::processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, GanitaMet
     for(kk=0; kk<gmts[set2].returnNumTracks(); kk++){
       sysTrack = gmts[set2].returnTrack(kk);
       isys = sysTrack->returnFrameIndex(fr_num);
-      if(verbosity > 1){
-	if((fr_num==5) && (iref == 6)){
-	  std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
-		   <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
-	}
-      }
       if(isys >= 0){
 	// Both refTrack and sysTrack have boxes on this frame
 	sysTrack->returnTopGMD(isys, gmd2);
@@ -1628,35 +1647,39 @@ int GanitaMetrics::processOuterDiv_1(uint64_t fr_num, uint64_t tr_num, GanitaMet
 	sys_y1 = gmd2.returnY_Anchor();
 	sys_x2 = sys_x1 + gmd2.returnWidth();
 	sys_y2 = sys_y1 + gmd2.returnHeight();
-      if(verbosity > 1){
-	if((fr_num==5) && (iref == 6)){
-	  std::cout<<"(ref x1,ref x2, ref y1, ref y2)=("<<ref_x1<<","<<ref_x2<<","
+	if(verbosity > 1){
+	  //if((fr_num==5) && (iref == 6)){
+	  //if((fr_num==5) && (iref == 6)){
+	  std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
+		   <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
+	  //}
+	  std::cout<<"("<<set1<<","<<set2<<") "<<"(ref x1,ref x2, ref y1, ref y2)=("<<ref_x1<<","<<ref_x2<<","
 		   <<ref_y1<<","<<ref_y2<<")"<<std::endl;
 	  std::cout<<"(sys x1, sys x2, sys y1, sys y2)=("<<sys_x1<<","<<sys_x2<<","
 		   <<sys_y1<<","<<sys_y2<<")"<<std::endl;
 	  std::cout<<"(fr_id, fr_num, sys x1, sys y1)=("<<gmd2.returnId()<<","<<gmd2.returnFrameNumber()
 		   <<","<<gmd2.returnX_Anchor()<<","<<gmd2.returnY_Anchor()<<")"<<std::endl;
+	  //}
 	}
-      }
-	// Find any overlap between refTrack and sysTrack	    
-	if((sys_x1 < ref_x2) && (sys_x2 > ref_x1) && 
-	   (sys_y1 < ref_y2) && (sys_y2 > ref_y1)){
-	  // there is an overlap
-	  if(verbosity > 1){
-	    //if(iref == 8){
-	      std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
-		       <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
-	      //}
-	  }
- 	  for(uu=0; uu<ww; uu++){
-	    for(vv=0; vv<hh; vv++){
-	      if((ref_x1 + uu >= sys_x1) && (ref_x1 + uu < sys_x2) && 
-		 (ref_y1 + vv >= sys_y1) && (ref_y1 + vv < sys_y2)){
-		rMat.set(uu,vv,rMat.get(uu,vv)+1);
-	      }
+      // Find any overlap between refTrack and sysTrack	    
+      if((sys_x1 < ref_x2) && (sys_x2 > ref_x1) && 
+	 (sys_y1 < ref_y2) && (sys_y2 > ref_y1)){
+	// there is an overlap
+	if(verbosity > 1){
+	  //if(iref == 8){
+	  std::cout<<"(Frame,rTrack,sTrack,rId,sId)=("<<fr_num<<","<<tr_num<<","
+		   <<kk<<","<<iref<<","<<isys<<")"<<std::endl;
+	  //}
+	}
+	for(uu=0; uu<ww; uu++){
+	  for(vv=0; vv<hh; vv++){
+	    if((ref_x1 + uu >= sys_x1) && (ref_x1 + uu < sys_x2) && 
+	       (ref_y1 + vv >= sys_y1) && (ref_y1 + vv < sys_y2)){
+	      rMat.set(uu,vv,rMat.get(uu,vv)+1);
 	    }
 	  }
 	}
+      }
       }
     }
   }
@@ -1726,6 +1749,9 @@ int GanitaMetrics::processOuterDiv_3(int tset)
     processOuterDiv_2(ii, tset);
   }
 
+  if(detailed_flag > 0){
+    std::cout<<"(Track Set,Track Id,Proportion Missed)"<<std::endl;
+  }
   for(ii=0; ii<gmts[tset].returnNumTracks(); ii++){
     refTrack = gmts[tset].returnTrack(ii);
     if(verbosity > 0){
@@ -1741,18 +1767,35 @@ int GanitaMetrics::processOuterDiv_3(int tset)
       // This should only happen for tracks with no volumes.
       alpha = 0; densityKL = 0;
     }
+    if(detailed_flag > 0){
+      //std::cout<<"(Track Set,Track Id,Proportion Missed)"
+      std::cout<<"("<<tset<<","<<refTrack->returnId()<<","<<1 - alpha<<")"<<std::endl;
+    }
     // Process outer divergence score formula.
     score = log2( (2.0 + gmts[1-tset].returnNumTracks()) 
     		  / (1.0 + alpha * (1 + gmts[1-tset].returnNumTracks())) );
     // Modified formula to use the number of tracks for tset rather than (1 - tset). 
 //     score = log2( ((double) 1 + gmts[tset].returnNumTracks()) 
 // 		 / ((double) 1 + alpha * gmts[tset].returnNumTracks()) );
-    if(verbosity > 0){
+    if(verbosity > 1){
       cout<<"log2((2+"<<gmts[1-tset].returnNumTracks()<<") / (1+"<<alpha<<"*"
 	  <<1 + gmts[1-tset].returnNumTracks()<<"))"<<endl;
       cout<<"Outer divergence ("<<score<<") Missed detection ("<<1 - alpha<<")"<<endl;
     }
-    tscore1 += score / (1 + gmts[1-tset].returnNumTracks());
+    // Harmonic mean
+    //tscore1 += (score * (2 + gmts[tset].returnNumTracks() + gmts[1-tset].returnNumTracks())) / (2 * (1 + gmts[tset].returnNumTracks()) * (1 + gmts[1-tset].returnNumTracks()));
+    // Geometric mean
+    //tscore1 += score / sqrt((1 + gmts[tset].returnNumTracks()) * (1 + gmts[1-tset].returnNumTracks()));
+
+    // Outer divergence (n, m, 1 + m)
+    // This is the main change between versions 0.12 and 1.0
+    tscore1 += score / (1 + gmts[tset].returnNumTracks());
+
+    // Arithmetic mean
+//     if(gmts[1-tset].returnNumTracks() + gmts[tset].returnNumTracks()){
+//       tscore1 += 2*score / (gmts[tset].returnNumTracks() + gmts[1-tset].returnNumTracks());
+//     }
+//     else tscore1 = 0;
     tscore2 += (1 - alpha) / gmts[tset].returnNumTracks();
     tscore3 += densityKL / gmts[tset].returnNumTracks();
   }
@@ -1874,6 +1917,9 @@ int GanitaMetrics::updateStats2(int tset, uint64_t tr_num,
   }
   if(rMat1.returnNCols() * rMat1.returnNRows() <= 0){ return(-1); }
   refTrack->stats[0] += rMat1.returnNCols() * rMat1.returnNRows();
+  if(verbosity > 1){
+    std::cout<<tset<<","<<tr_num<<",rows:"<<rMat1.returnNRows()<<",cols:"<<rMat1.returnNCols()<<std::endl;
+  }
   for(ii=0; ii<rMat1.returnNCols(); ii++){
     for(jj=0; jj<rMat1.returnNRows(); jj++){
       if(rMat1.get(ii, jj) == 0){
@@ -1918,11 +1964,12 @@ int GanitaMetrics::updateStats2(int tset, uint64_t tr_num,
     }
   }
   refTrack->stats[1] += no_overlap;
-  if(verbosity > 1){
-    std::cout<<"No overlap ("<<((double) no_overlap) / ((double) rMat1.returnNCols() * rMat1.returnNRows())
+  if(verbosity > 0){
+    std::cout<<"tnum="<<tr_num<<" No overlap ("
+	     <<((double) no_overlap) / ((double) rMat1.returnNCols() * rMat1.returnNRows())
 	     <<")"<<std::endl;
-    std::cout<<"Total no overlap ("
-	     <<((double) refTrack->stats[1]) / ((double) refTrack->stats[1])
+    std::cout<<"tset="<<tset<<" Total no overlap ("
+	     <<((double) refTrack->stats[1]) / ((double) refTrack->stats[0])
 	     <<")"<<std::endl;
   }
   //refTrack->stats[2] += (kL / (rMat1.returnNCols() * rMat1.returnNRows()));

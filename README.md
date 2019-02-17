@@ -16,13 +16,14 @@ Executables: gmetrics
 Library: libGanitaMetrics.so
 
 ------------------------------------------------------------
-| Usage: ./gmetrics [options] -i file1 [-i sys_file]       |
-| Version: 0.10.0                                          |
+| Usage: build/gmetrics [options] -i file1 [-i sys_file]   |
+| Version: 1.0.0                                           |
 | Options:                                                 |
 | -h,--help                                                |
 | -v,--verbose               0-9                           |
 | -r,--resolution            wxh                           |
 | -c,--compute-resolution                                  |
+| -d,--detailed-report                                     |
 | -s,--visualize             video-file                    |
 | -i,--input-file            file1                         |
 ------------------------------------------------------------

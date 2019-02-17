@@ -19,6 +19,7 @@ private:
   std::string name;
   std::string type;
   int verbosity;
+  int detailed_flag;
   GanitaBuffer *gmr, *gms;
   GanitaMetricsTrackSet gmts[2];
   std::vector< std::shared_ptr<GanitaMetricsTrack> > gmrTracks;

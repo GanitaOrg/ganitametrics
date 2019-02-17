@@ -11,6 +11,7 @@ GanitaMetricsOptions::GanitaMetricsOptions(void)
   compare_flag = 0;
   help_flag = 0;
   res_flag = 0; // use default value
+  detailed_flag = 0;
   res_x = 1920; // default value
   res_y = 1080; // default value
   vname = std::string("");
@@ -43,6 +44,9 @@ int GanitaMetricsOptions::getOptions(int argc, char* argv[])
     }
     else if ((std::string(argv[ii]) == "--compute-resolution") ||(std::string(argv[ii]) == "-c")) {
       res_flag = 2;
+    }
+    else if ((std::string(argv[ii]) == "--detailed-report") ||(std::string(argv[ii]) == "-d")) {
+      detailed_flag = 1;
     }
     else if ((std::string(argv[ii]) == "--resolution") ||(std::string(argv[ii]) == "-r")) {
       if (ii + 1 < argc) { // Make sure we aren't at the end of argv!
@@ -126,6 +130,7 @@ int GanitaMetricsOptions::outputOptions(char* argv[])
   std::cout<<"| -v,--verbose               0-9                           |"<<std::endl;
   std::cout<<"| -r,--resolution            wxh                           |"<<std::endl;
   std::cout<<"| -c,--compute-resolution                                  |"<<std::endl;
+  std::cout<<"| -d,--detailed-report                                     |"<<std::endl;
   std::cout<<"| -s,--visualize             video-file                    |"<<std::endl;
   std::cout<<"| -i,--input-file            file1                         |"<<std::endl;
   std::cout<<"------------------------------------------------------------"<<std::endl;
@@ -166,6 +171,11 @@ int GanitaMetricsOptions::returnHelpFlag(void)
 int GanitaMetricsOptions::returnResFlag(void)
 {
   return(res_flag);
+}
+
+int GanitaMetricsOptions::returnDetailedFlag(void)
+{
+  return(detailed_flag);
 }
 
 uint64_t GanitaMetricsOptions::returnResX(void)
